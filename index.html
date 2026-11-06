@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineTogether - Supabase Edition</title>
+    <title>CineTogether - Watch Party & Screen Share</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -17,15 +17,14 @@
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- AUTH SCREEN (Separate Sign In & Sign Up Forms with Show Password) -->
+    <!-- AUTH SCREEN (Sign In / Sign Up Tabs with Password Viewer) -->
     <div id="auth-screen" class="flex-1 flex items-center justify-center p-4 relative overflow-y-auto">
         <div class="glass-panel p-8 rounded-2xl w-full max-w-md space-y-5 my-auto">
             <div class="text-center space-y-2">
                 <h2 class="text-2xl font-extrabold text-white">CineTogether</h2>
-                <p class="text-xs text-slate-400">Apne account mein login karein ya naya account banayein.</p>
+                <p class="text-xs text-slate-400">Watch parties aur screen share ke liye sign in karein.</p>
             </div>
 
-            <!-- Tabs to Switch between Sign In and Sign Up -->
             <div class="flex bg-black/40 p-1 rounded-xl border border-white/10">
                 <button onclick="switchTab('signin')" id="tab-signin-btn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition">Sign In</button>
                 <button onclick="switchTab('signup')" id="tab-signup-btn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition">Sign Up</button>
@@ -44,9 +43,7 @@
                         <button type="button" onclick="togglePassword('signin-password', 'signin-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signin-eye">Show</button>
                     </div>
                 </div>
-                <button onclick="handleSignIn()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">
-                    Sign In
-                </button>
+                <button onclick="handleSignIn()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">Sign In</button>
             </div>
 
             <!-- SIGN UP FORM -->
@@ -69,20 +66,18 @@
                         <button type="button" onclick="togglePassword('signup-confirm-password', 'signup-confirm-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signup-confirm-eye">Show</button>
                     </div>
                 </div>
-                <button onclick="handleSignUp()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">
-                    Create Account (Sign Up)
-                </button>
+                <button onclick="handleSignUp()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">Create Account (Sign Up)</button>
             </div>
         </div>
     </div>
 
-    <!-- LOBBY SCREEN -->
+    <!-- LOBBY SCREEN (Create or Join Room) -->
     <div id="lobby-screen" class="flex-1 hidden flex-col items-center justify-center p-4">
         <div class="glass-panel p-8 rounded-2xl w-full max-w-lg space-y-6">
             <div class="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                     <h3 class="text-lg font-bold text-white" id="welcome-user">Welcome</h3>
-                    <p class="text-xs font-mono text-[#b5d5ed]" id="user-email-display">Connected via Supabase</p>
+                    <p class="text-xs font-mono text-[#b5d5ed]" id="user-email-display">Supabase Connected</p>
                 </div>
                 <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline font-semibold">Logout</button>
             </div>
@@ -90,18 +85,18 @@
                 <div class="bg-black/40 p-5 rounded-xl border border-white/5 space-y-3">
                     <h4 class="text-xs font-bold text-[#b5d5ed] uppercase">Naya Watch Party Room Banayein</h4>
                     <input type="text" id="room-title-input" placeholder="Room Title (e.g. Movie Night)" class="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs">
-                    <button onclick="createSupabaseRoom()" class="w-full btn-primary text-white font-bold py-2.5 rounded-lg text-xs">Create Room</button>
+                    <button onclick="createRoom()" class="w-full btn-primary text-white font-bold py-2.5 rounded-lg text-xs">Create Room & Start Movie</button>
                 </div>
                 <div class="bg-black/40 p-5 rounded-xl border border-white/5 space-y-3">
                     <h4 class="text-xs font-bold text-[#b5d5ed] uppercase">Room Code Se Join Karein</h4>
                     <input type="text" id="join-code-input" placeholder="e.g. CINE-4029" class="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs font-mono uppercase">
-                    <button onclick="joinSupabaseRoom()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-xs">Join Room</button>
+                    <button onclick="joinRoom()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-xs">Join Room</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ROOM SCREEN -->
+    <!-- ROOM SCREEN (Synchronized Movie Player + Screen Share with Audio) -->
     <div id="room-screen" class="flex-1 hidden flex-col lg:flex-row overflow-hidden">
         <div class="flex-1 flex flex-col p-4 space-y-3 overflow-y-auto">
             <div class="flex items-center justify-between glass-panel px-4 py-3 rounded-xl">
@@ -110,7 +105,10 @@
                     <h3 id="room-name-display" class="font-bold text-sm text-white">Room</h3>
                     <span class="bg-black/60 px-2.5 py-0.5 rounded text-xs font-mono text-[#b5d5ed]" id="room-code-display">CINE-0000</span>
                 </div>
-                <button onclick="toggleScreenShare()" id="screen-share-btn" class="btn-primary text-xs px-3.5 py-2 rounded-lg font-semibold">Screen Share (Audio On)</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleScreenShare()" id="screen-share-btn" class="btn-primary text-xs px-3.5 py-2 rounded-lg font-semibold">Screen Share (Audio On)</button>
+                    <button onclick="leaveRoom()" class="bg-red-500/20 text-red-300 text-xs px-3 py-2 rounded-lg font-semibold border border-red-500/30">Leave Room</button>
+                </div>
             </div>
             <div id="screenshare-box" class="hidden bg-black rounded-xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center relative">
                 <video id="screenshare-video" autoplay playsinline class="w-full h-full object-contain"></video>
@@ -121,7 +119,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- MAIN SCRIPT (Supabase Integration) -->
     <script type="module">
         import { supabase } from './supabase.js';
 
@@ -129,7 +127,6 @@
         let currentRoom = null;
         let localScreenStream = null;
 
-        // Switch between Sign In and Sign Up tabs
         window.switchTab = function(tab) {
             const signinForm = document.getElementById('signin-form');
             const signupForm = document.getElementById('signup-form');
@@ -144,12 +141,11 @@
             } else {
                 signinForm.style.display = 'none';
                 signupForm.style.display = 'block';
-                signupBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition';
-                signinBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition';
+                signupBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition';
+                signinBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition';
             }
         };
 
-        // Toggle Password Visibility (Show/Hide)
         window.togglePassword = function(inputId, btnId) {
             const input = document.getElementById(inputId);
             const btn = document.getElementById(btnId);
@@ -181,15 +177,8 @@
             const password = document.getElementById('signup-password').value.trim();
             const confirmPassword = document.getElementById('signup-confirm-password').value.trim();
 
-            if (!email || !password || !confirmPassword) {
-                alert('Kripya sabhi fields zaroor bharein!');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                alert('Error: Password aur Verify Password match nahi kar rahe!');
-                return;
-            }
+            if (!email || !password || !confirmPassword) { alert('Sabhi fields bharein!'); return; }
+            if (password !== confirmPassword) { alert('Password match nahi kar rahe!'); return; }
 
             let { data, error } = await supabase.auth.signUp({ email, password });
             if (error) {
@@ -197,7 +186,7 @@
                 return;
             }
             currentUser = data.user;
-            alert('Account successfully ban gaya!');
+            alert('Account successfully ban gaya aur login ho gaya!');
             showLobby();
         };
 
@@ -216,8 +205,8 @@
             document.getElementById('welcome-user').innerText = `User: ${currentUser.email}`;
         }
 
-        window.createSupabaseRoom = async function() {
-            const title = document.getElementById('room-title-input').value.trim() || 'My Watch Party';
+        window.createRoom = async function() {
+            const title = document.getElementById('room-title-input').value.trim() || 'Watch Party';
             const room_code = 'CINE-' + Math.floor(1000 + Math.random() * 9000);
 
             let { data, error } = await supabase.from('rooms').insert([
@@ -229,7 +218,7 @@
             showRoom();
         };
 
-        window.joinSupabaseRoom = async function() {
+        window.joinRoom = async function() {
             const code = document.getElementById('join-code-input').value.trim().toUpperCase();
             if (!code) { alert('Room code likhein!'); return; }
 
@@ -247,6 +236,11 @@
             document.getElementById('room-code-display').innerText = currentRoom.room_code;
         }
 
+        window.leaveRoom = function() {
+            currentRoom = null;
+            showLobby();
+        };
+
         window.toggleScreenShare = async function() {
             const videoEl = document.getElementById('screenshare-video');
             const boxEl = document.getElementById('screenshare-box');
@@ -255,7 +249,7 @@
                     localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                     videoEl.srcObject = localScreenStream;
                     boxEl.classList.remove('hidden');
-                } catch (e) { alert('Screen share permission cancel ho gayi.'); }
+                } catch (e) { alert('Screen share cancel ho gayi.'); }
             } else {
                 localScreenStream.getTracks().forEach(t => t.stop());
                 localScreenStream = null;
