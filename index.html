@@ -83,7 +83,7 @@
                         <i class="fa-solid fa-comments"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to ChatFlow</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Live Cloud Messaging & Media Sharing</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Live Cloud Messaging & Direct Media Upload</p>
                 </div>
 
                 <!-- Tabs (Login / Signup) -->
@@ -239,10 +239,12 @@
                 <!-- Chat Input Form -->
                 <div id="chat-input-area" class="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 hidden">
                     <form onsubmit="handleSendMessage(event)" class="flex items-center space-x-2">
-                        <button type="button" onclick="openMediaModal()" class="w-11 h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition shrink-0" title="Share Photo or Video">
-                            <i class="fa-solid fa-photo-film"></i>
+                        <!-- Hidden File Input for Gallery / Direct Upload -->
+                        <input type="file" id="media-file-input" accept="image/*,video/*" class="hidden" onchange="uploadAndSendMedia(event)">
+                        <button type="button" onclick="document.getElementById('media-file-input').click()" class="w-11 h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition shrink-0" title="Upload Photo or Video">
+                            <i class="fa-solid fa-paperclip"></i>
                         </button>
-                        <input type="text" id="message-input" autocomplete="off" placeholder="Type your message or share media..." class="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        <input type="text" id="message-input" autocomplete="off" placeholder="Type your message..." class="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         <button type="submit" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center transition shadow-md shadow-indigo-600/25 shrink-0">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                         </button>
@@ -284,45 +286,6 @@
 
             <div class="flex justify-end">
                 <button onclick="closeAddFriendModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition">Done</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Share Photo/Video Modal -->
-    <div id="media-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                        <i class="fa-solid fa-photo-film"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">Share Photo or Video</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Paste direct image or video URL</p>
-                    </div>
-                </div>
-                <button onclick="closeMediaModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="space-y-4 mb-6">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Media Type</label>
-                    <select id="media-type" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
-                        <option value="image">Photo / Image</option>
-                        <option value="video">Video</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Direct URL Link</label>
-                    <input type="url" id="media-url-input" placeholder="https://example.com/photo.jpg" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
-                </div>
-            </div>
-
-            <div class="flex justify-end space-x-2">
-                <button onclick="closeMediaModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition">Cancel</button>
-                <button onclick="sendMediaMessage()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition shadow-md shadow-indigo-600/20">Send Media</button>
             </div>
         </div>
     </div>
@@ -646,15 +609,6 @@
             document.getElementById('add-friend-modal').classList.add('hidden');
         }
 
-        function openMediaModal() {
-            document.getElementById('media-modal').classList.remove('hidden');
-            document.getElementById('media-url-input').value = '';
-        }
-
-        function closeMediaModal() {
-            document.getElementById('media-modal').classList.add('hidden');
-        }
-
         function searchGlobalUsers() {
             let query = document.getElementById('global-user-search').value.toLowerCase().trim().replace(/^@/, '');
             const resultsContainer = document.getElementById('global-user-results');
@@ -783,14 +737,14 @@
                             <div class="mb-2">
                                 <video src="${escapeHtml(msg.media_url)}" controls class="max-w-xs rounded-xl max-h-60 shadow-md"></video>
                             </div>
-                            ${msg.text ? `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>` : ''}
+                            ${msg.text && msg.text !== 'Shared a video' ? `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>` : ''}
                         `;
                     } else {
                         contentHtml = `
                             <div class="mb-2">
                                 <img src="${escapeHtml(msg.media_url)}" alt="Shared Media" class="max-w-xs rounded-xl max-h-60 object-cover shadow-md">
                             </div>
-                            ${msg.text ? `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>` : ''}
+                            ${msg.text && msg.text !== 'Shared a photo' ? `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>` : ''}
                         `;
                     }
                 }
@@ -857,13 +811,34 @@
             }
         }
 
-        async function sendMediaMessage() {
-            const mediaType = document.getElementById('media-type').value;
-            const mediaUrl = document.getElementById('media-url-input').value.trim();
-            if (!mediaUrl || !activeChatId || !supabaseClient) {
-                showModal('Error', 'Please enter a valid media URL link.', 'error');
+        // Direct File Upload to Supabase Storage Bucket
+        async function uploadAndSendMedia(event) {
+            const file = event.target.files[0];
+            if (!file || !activeChatId || !supabaseClient) return;
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36.substring(2))}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            showModal('Uploading...', 'Please wait while your media is uploading to cloud storage.', 'info');
+
+            // Upload file to Supabase Storage bucket named 'chat-media'
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                .from('chat-media')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                showModal('Upload Error', uploadError.message, 'error');
                 return;
             }
+
+            // Get Public URL of uploaded file
+            const { data: publicUrlData } = supabaseClient.storage
+                .from('chat-media')
+                .getPublicUrl(filePath);
+
+            const mediaUrl = publicUrlData.publicUrl;
+            const mediaType = file.type.startsWith('video') ? 'video' : 'image';
 
             const newMsg = {
                 sender_id: currentUser.id,
@@ -873,20 +848,24 @@
                 media_type: mediaType
             };
 
-            const { data, error } = await supabaseClient
+            const { data: msgData, error: msgError } = await supabaseClient
                 .from('messages')
                 .insert([newMsg])
                 .select()
                 .single();
 
-            if (!error && data) {
-                messagesCache.push(data);
-                closeMediaModal();
+            closeModal();
+
+            if (!msgError && msgData) {
+                messagesCache.push(msgData);
                 renderMessages();
                 renderContacts();
             } else {
-                showModal('Error', 'Failed to send media.', 'error');
+                showModal('Error', 'Failed to send media message.', 'error');
             }
+
+            // Reset file input
+            event.target.value = '';
         }
 
         function toggleDarkMode() {
