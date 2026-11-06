@@ -88,8 +88,8 @@
 
                 <!-- Tabs (Login / Signup) -->
                 <div class="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 mb-6">
-                    <button id="tab-login-btn" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">Login</button>
-                    <button id="tab-signup-btn" onclick="switchTab('signup')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Sign Up</button>
+                    <button type="button" id="tab-login-btn" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm cursor-pointer">Login</button>
+                    <button type="button" id="tab-signup-btn" onclick="switchTab('signup')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">Sign Up</button>
                 </div>
 
                 <!-- LOGIN FORM -->
@@ -108,7 +108,7 @@
                             <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         </div>
                     </div>
-                    <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2">Sign In</button>
+                    <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2 cursor-pointer">Sign In</button>
                 </form>
 
                 <!-- SIGNUP FORM -->
@@ -149,7 +149,7 @@
                         </div>
                         <div id="password-match-status" class="text-xs mt-1.5 font-medium hidden"></div>
                     </div>
-                    <button type="submit" id="signup-submit-btn" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2">Create Account</button>
+                    <button type="submit" id="signup-submit-btn" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2 cursor-pointer">Create Account</button>
                 </form>
 
             </div>
@@ -173,10 +173,10 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-1 shrink-0">
-                        <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition" title="Toggle Theme">
+                        <button type="button" onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer" title="Toggle Theme">
                             <i id="theme-icon" class="fa-solid fa-moon"></i>
                         </button>
-                        <button onclick="logout()" class="w-9 h-9 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/30 text-rose-500 flex items-center justify-center transition" title="Log Out">
+                        <button type="button" onclick="logout()" class="w-9 h-9 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/30 text-rose-500 flex items-center justify-center transition cursor-pointer" title="Log Out">
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </button>
                     </div>
@@ -188,15 +188,15 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-search"></i></span>
                         <input type="text" id="contact-search" oninput="renderContacts()" placeholder="Search chats..." class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                     </div>
-                    <button onclick="openAddFriendModal()" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition shrink-0 shadow-sm" title="Find & Add Users">
+                    <button type="button" onclick="openAddFriendModal()" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition shrink-0 shadow-sm cursor-pointer" title="Find & Add Users">
                         <i class="fa-solid fa-user-plus text-xs"></i>
                     </button>
                 </div>
 
                 <!-- Tabs (Chats / Friends) -->
                 <div class="flex border-b border-slate-200 dark:border-slate-800 text-xs font-semibold">
-                    <button onclick="switchSidebarTab('chats')" id="sidebar-tab-chats" class="flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition">Chats</button>
-                    <button onclick="switchSidebarTab('friends')" id="sidebar-tab-friends" class="flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">Friends (<span id="friend-count">0</span>)</button>
+                    <button type="button" onclick="switchSidebarTab('chats')" id="sidebar-tab-chats" class="flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition cursor-pointer">Chats</button>
+                    <button type="button" onclick="switchSidebarTab('friends')" id="sidebar-tab-friends" class="flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer">Friends (<span id="friend-count">0</span>)</button>
                 </div>
 
                 <!-- Contact / Chat List -->
@@ -212,7 +212,7 @@
                 <!-- Chat Header -->
                 <div class="h-16 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-10 shadow-sm">
                     <div class="flex items-center space-x-3">
-                        <button onclick="toggleMobileSidebar()" class="md:hidden w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+                        <button type="button" onclick="toggleMobileSidebar()" class="md:hidden w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer">
                             <i class="fa-solid fa-bars text-lg"></i>
                         </button>
                         <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold" id="active-chat-avatar">
@@ -239,13 +239,12 @@
                 <!-- Chat Input Form -->
                 <div id="chat-input-area" class="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 hidden">
                     <form onsubmit="handleSendMessage(event)" class="flex items-center space-x-2">
-                        <!-- Hidden File Input for Gallery / Direct Upload -->
                         <input type="file" id="media-file-input" accept="image/*,video/*" class="hidden" onchange="uploadAndSendMedia(event)">
-                        <button type="button" onclick="document.getElementById('media-file-input').click()" class="w-11 h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition shrink-0" title="Upload Photo or Video">
+                        <button type="button" onclick="document.getElementById('media-file-input').click()" class="w-11 h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition shrink-0 cursor-pointer" title="Upload Photo or Video">
                             <i class="fa-solid fa-paperclip"></i>
                         </button>
                         <input type="text" id="message-input" autocomplete="off" placeholder="Type your message..." class="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
-                        <button type="submit" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center transition shadow-md shadow-indigo-600/25 shrink-0">
+                        <button type="submit" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center transition shadow-md shadow-indigo-600/25 shrink-0 cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                         </button>
                     </form>
@@ -270,7 +269,7 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400">Search by username (@username) or name</p>
                     </div>
                 </div>
-                <button onclick="closeAddFriendModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center transition">
+                <button type="button" onclick="closeAddFriendModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center transition cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -285,7 +284,7 @@
             </div>
 
             <div class="flex justify-end">
-                <button onclick="closeAddFriendModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition">Done</button>
+                <button type="button" onclick="closeAddFriendModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition cursor-pointer">Done</button>
             </div>
         </div>
     </div>
@@ -333,13 +332,13 @@
             if (tab === 'login') {
                 loginForm.classList.remove('hidden');
                 signupForm.classList.add('hidden');
-                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm";
-                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm cursor-pointer";
+                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer";
             } else {
                 signupForm.classList.remove('hidden');
                 loginForm.classList.add('hidden');
-                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm";
-                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm cursor-pointer";
+                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer";
             }
         }
 
@@ -508,11 +507,11 @@
             const friendsBtn = document.getElementById('sidebar-tab-friends');
 
             if (tab === 'chats') {
-                chatsBtn.className = "flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition";
-                friendsBtn.className = "flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+                chatsBtn.className = "flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition cursor-pointer";
+                friendsBtn.className = "flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer";
             } else {
-                friendsBtn.className = "flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition";
-                chatsBtn.className = "flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
+                friendsBtn.className = "flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition cursor-pointer";
+                chatsBtn.className = "flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer";
             }
             renderContacts();
         }
@@ -639,7 +638,7 @@
                     <div class="shrink-0 ml-2">
                         ${isAlreadyFriend ? 
                             `<span class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-semibold rounded-lg">Connected</span>` :
-                            `<button onclick="addFriend('${user.id}')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition shadow-sm">Add Friend</button>`
+                            `<button type="button" onclick="addFriend('${user.id}')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition shadow-sm cursor-pointer">Add Friend</button>`
                         }
                     </div>
                 `;
@@ -811,18 +810,16 @@
             }
         }
 
-        // Direct File Upload to Supabase Storage Bucket
         async function uploadAndSendMedia(event) {
             const file = event.target.files[0];
             if (!file || !activeChatId || !supabaseClient) return;
 
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${Math.random().toString(36.substring(2))}.${fileExt}`;
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
             const filePath = `${fileName}`;
 
             showModal('Uploading...', 'Please wait while your media is uploading to cloud storage.', 'info');
 
-            // Upload file to Supabase Storage bucket named 'chat-media'
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('chat-media')
                 .upload(filePath, file);
@@ -832,7 +829,6 @@
                 return;
             }
 
-            // Get Public URL of uploaded file
             const { data: publicUrlData } = supabaseClient.storage
                 .from('chat-media')
                 .getPublicUrl(filePath);
@@ -864,7 +860,6 @@
                 showModal('Error', 'Failed to send media message.', 'error');
             }
 
-            // Reset file input
             event.target.value = '';
         }
 
@@ -910,17 +905,6 @@
             setTimeout(() => modal.classList.add('hidden'), 200);
         }
 
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
     </script>
 </body>
 </html>
