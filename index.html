@@ -17,28 +17,60 @@
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- AUTH SCREEN -->
+    <!-- AUTH SCREEN (Separate Sign In & Sign Up Forms with Show Password) -->
     <div id="auth-screen" class="flex-1 flex items-center justify-center p-4 relative overflow-y-auto">
         <div class="glass-panel p-8 rounded-2xl w-full max-w-md space-y-5 my-auto">
             <div class="text-center space-y-2">
-                <h2 class="text-2xl font-extrabold text-white">CineTogether (Supabase)</h2>
-                <p id="auth-subtitle" class="text-xs text-slate-400">Apne account se sign in ya sign up karein.</p>
+                <h2 class="text-2xl font-extrabold text-white">CineTogether</h2>
+                <p class="text-xs text-slate-400">Apne account mein login karein ya naya account banayein.</p>
             </div>
-            <div class="space-y-3.5">
+
+            <!-- Tabs to Switch between Sign In and Sign Up -->
+            <div class="flex bg-black/40 p-1 rounded-xl border border-white/10">
+                <button onclick="switchTab('signin')" id="tab-signin-btn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition">Sign In</button>
+                <button onclick="switchTab('signup')" id="tab-signup-btn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition">Sign Up</button>
+            </div>
+
+            <!-- SIGN IN FORM -->
+            <div id="signin-form" class="space-y-3.5">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="auth-email" placeholder="name@domain.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
+                    <input type="email" id="signin-email" placeholder="name@domain.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
+                    <div class="relative">
+                        <input type="password" id="signin-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs pr-10">
+                        <button type="button" onclick="togglePassword('signin-password', 'signin-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signin-eye">Show</button>
+                    </div>
                 </div>
-                <div id="confirm-password-container">
+                <button onclick="handleSignIn()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">
+                    Sign In
+                </button>
+            </div>
+
+            <!-- SIGN UP FORM -->
+            <div id="signup-form" class="space-y-3.5 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+                    <input type="email" id="signup-email" placeholder="name@domain.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <div class="relative">
+                        <input type="password" id="signup-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs pr-10">
+                        <button type="button" onclick="togglePassword('signup-password', 'signup-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signup-eye">Show</button>
+                    </div>
+                </div>
+                <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Verify Password (Confirm)</label>
-                    <input type="password" id="auth-confirm-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
+                    <div class="relative">
+                        <input type="password" id="signup-confirm-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs pr-10">
+                        <button type="button" onclick="togglePassword('signup-confirm-password', 'signup-confirm-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signup-confirm-eye">Show</button>
+                    </div>
                 </div>
-                <button onclick="handleSupabaseAuth()" id="auth-btn" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">
-                    Sign In / Sign Up
+                <button onclick="handleSignUp()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">
+                    Create Account (Sign Up)
                 </button>
             </div>
         </div>
@@ -89,7 +121,7 @@
         </div>
     </div>
 
-    <!-- SUPABASE SCRIPT INTEGRATION -->
+    <!-- SCRIPT LOGIC -->
     <script type="module">
         import { supabase } from './supabase.js';
 
@@ -97,36 +129,75 @@
         let currentRoom = null;
         let localScreenStream = null;
 
-        window.handleSupabaseAuth = async function() {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-            const confirmPassword = document.getElementById('auth-confirm-password').value.trim();
+        // Switch between Sign In and Sign Up tabs
+        window.switchTab = function(tab) {
+            const signinForm = document.getElementById('signin-form');
+            const signupForm = document.getElementById('signup-form');
+            const signinBtn = document.getElementById('tab-signin-btn');
+            const signupBtn = document.getElementById('tab-signup-btn');
 
-            if (!email || !password || !confirmPassword) { 
-                alert('Kripya sabhi fields zaroor bharein!'); 
-                return; 
+            if (tab === 'signin') {
+                signinForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                signinBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition';
+                signupBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition';
+            } else {
+                signinForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                signupBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition';
+                signinBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition';
+            }
+        };
+
+        // Toggle Password Visibility (Show/Hide)
+        window.togglePassword = function(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerText = 'Hide';
+            } else {
+                input.type = 'password';
+                btn.innerText = 'Show';
+            }
+        };
+
+        window.handleSignIn = async function() {
+            const email = document.getElementById('signin-email').value.trim();
+            const password = document.getElementById('signin-password').value.trim();
+            if (!email || !password) { alert('Email aur password likhein!'); return; }
+
+            let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Login Error: ' + error.message);
+                return;
+            }
+            currentUser = data.user;
+            showLobby();
+        };
+
+        window.handleSignUp = async function() {
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value.trim();
+            const confirmPassword = document.getElementById('signup-confirm-password').value.trim();
+
+            if (!email || !password || !confirmPassword) {
+                alert('Kripya sabhi fields zaroor bharein!');
+                return;
             }
 
-            // Verify Password Check
             if (password !== confirmPassword) {
                 alert('Error: Password aur Verify Password match nahi kar rahe!');
                 return;
             }
 
-            let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            let { data, error } = await supabase.auth.signUp({ email, password });
             if (error) {
-                // Agar account mojood nahi hai toh naya sign up karwa dein
-                let signUpRes = await supabase.auth.signUp({ email, password });
-                if (signUpRes.error) {
-                    alert('Auth Error: ' + signUpRes.error.message);
-                    return;
-                }
-                currentUser = signUpRes.user;
-                alert('Account successfully ban gaya aur login ho gaya!');
-            } else {
-                currentUser = data.user;
-                alert('Successfully Login ho gaye!');
+                alert('Sign Up Error: ' + error.message);
+                return;
             }
+            currentUser = data.user;
+            alert('Account successfully ban gaya!');
             showLobby();
         };
 
@@ -153,11 +224,7 @@
                 { room_code, name: title, host_id: currentUser.id, is_playing: false, playback_position: 0 }
             ]).select();
 
-            if (error) {
-                alert('Room creation error: ' + error.message);
-                return;
-            }
-
+            if (error) { alert('Room creation error: ' + error.message); return; }
             currentRoom = data[0];
             showRoom();
         };
@@ -167,11 +234,7 @@
             if (!code) { alert('Room code likhein!'); return; }
 
             let { data, error } = await supabase.from('rooms').select('*').eq('room_code', code).single();
-            if (error || !data) {
-                alert('Room nahi mila!');
-                return;
-            }
-
+            if (error || !data) { alert('Room nahi mila!'); return; }
             currentRoom = data;
             showRoom();
         };
@@ -192,9 +255,7 @@
                     localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
                     videoEl.srcObject = localScreenStream;
                     boxEl.classList.remove('hidden');
-                } catch (e) {
-                    alert('Screen share permission cancel ho gayi.');
-                }
+                } catch (e) { alert('Screen share permission cancel ho gayi.'); }
             } else {
                 localScreenStream.getTracks().forEach(t => t.stop());
                 localScreenStream = null;
