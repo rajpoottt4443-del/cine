@@ -83,7 +83,7 @@
                         <i class="fa-solid fa-comments"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to ChatFlow</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Live Cloud Messaging via Supabase</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Live Cloud Messaging & Media Sharing</p>
                 </div>
 
                 <!-- Tabs (Login / Signup) -->
@@ -239,7 +239,11 @@
                 <!-- Chat Input Form -->
                 <div id="chat-input-area" class="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 hidden">
                     <form onsubmit="handleSendMessage(event)" class="flex items-center space-x-2">
-                        <input type="text" id="message-input" autocomplete="off" placeholder="Type your message here..." class="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        <!-- Media Sharing Button -->
+                        <button type="button" onclick="openMediaModal()" class="w-11 h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition shrink-0" title="Share Photo or Video">
+                            <i class="fa-solid fa-photo-film"></i>
+                        </button>
+                        <input type="text" id="message-input" autocomplete="off" placeholder="Type your message or share media..." class="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         <button type="submit" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center transition shadow-md shadow-indigo-600/25 shrink-0">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                         </button>
@@ -270,13 +274,11 @@
                 </button>
             </div>
 
-            <!-- Search input for global users -->
             <div class="relative mb-4">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" id="global-user-search" oninput="searchGlobalUsers()" placeholder="Search @username or name..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
             </div>
 
-            <!-- Results List -->
             <div id="global-user-results" class="max-h-64 overflow-y-auto space-y-2 mb-4 divide-y divide-slate-100 dark:divide-slate-800/50">
                 <div class="text-center py-6 text-slate-400 text-xs">Start typing to search users...</div>
             </div>
@@ -287,11 +289,47 @@
         </div>
     </div>
 
-    <!-- Application Logic Script with Supabase Integration & Auto-Polling -->
+    <!-- Share Photo/Video Modal -->
+    <div id="media-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                        <i class="fa-solid fa-photo-film"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">Share Photo or Video</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Paste direct image or video URL</p>
+                    </div>
+                </div>
+                <button onclick="closeMediaModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Media Type</label>
+                    <select id="media-type" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        <option value="image">Photo / Image</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Direct URL Link</label>
+                    <input type="url" id="media-url-input" placeholder="https://example.com/photo.jpg" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeMediaModal()" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition">Cancel</button>
+                <button onclick="sendMediaMessage()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition shadow-md shadow-indigo-600/20">Send Media</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
     <script>
-        // ----------------------------------------------------
-        // SUPABASE CONFIGURATION
-        // ----------------------------------------------------
         const SUPABASE_URL = 'https://guofvbpjsdyngalozvvp.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_7vtoIBWTZ2yoacIqkoRQrQ_U2ckTE_g';
 
@@ -299,20 +337,18 @@
 
         let currentUser = null;
         let activeChatId = null;
-        let currentSidebarTab = 'chats'; // 'chats' or 'friends'
+        let currentSidebarTab = 'chats';
         
         let allUsersCache = [];
         let myFriendsCache = [];
         let messagesCache = [];
 
-        // Default channels / bot
         const defaultContacts = [
             { id: 'general', name: 'General Lounge', type: 'channel', avatar: '#', status: 'Public Channel', icon: 'fa-globe' },
             { id: 'tech', name: 'Tech & Dev Hub', type: 'channel', avatar: '#', status: 'Public Channel', icon: 'fa-code' },
             { id: 'bot_ai', name: 'ChatFlow Assistant', type: 'bot', avatar: '🤖', status: 'AI Bot (Auto-reply)', icon: 'fa-robot' }
         ];
 
-        // Initialize App on Load
         window.addEventListener('DOMContentLoaded', async () => {
             const savedUser = sessionStorage.getItem('chatflow_current_user');
             if (savedUser) {
@@ -326,7 +362,6 @@
             }
         });
 
-        // Toggle Auth Tabs
         function switchTab(tab) {
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
@@ -346,7 +381,6 @@
             }
         }
 
-        // Real-time password matching validation
         function checkPasswordMatch() {
             const pass = document.getElementById('signup-password').value;
             const confirm = document.getElementById('signup-confirm').value;
@@ -372,13 +406,9 @@
             }
         }
 
-        // Handle Signup with Supabase
         async function handleSignup(e) {
             e.preventDefault();
-            if (!supabaseClient) {
-                showModal('Configuration Error', 'Supabase client failed to initialize.', 'error');
-                return;
-            }
+            if (!supabaseClient) return;
 
             const name = document.getElementById('signup-name').value.trim();
             let username = document.getElementById('signup-username').value.trim().toLowerCase().replace(/^@/, '');
@@ -391,7 +421,6 @@
                 return;
             }
 
-            // Check if username or email exists
             const { data: existing } = await supabaseClient
                 .from('users')
                 .select('*')
@@ -421,13 +450,9 @@
             }
         }
 
-        // Handle Login with Supabase
         async function handleLogin(e) {
             e.preventDefault();
-            if (!supabaseClient) {
-                showModal('Configuration Error', 'Supabase client failed to initialize.', 'error');
-                return;
-            }
+            if (!supabaseClient) return;
 
             let identifier = document.getElementById('login-identifier').value.trim().toLowerCase().replace(/^@/, '');
             const password = document.getElementById('login-password').value;
@@ -449,7 +474,6 @@
             await showChatView();
         }
 
-        // Logout
         function logout() {
             currentUser = null;
             sessionStorage.removeItem('chatflow_current_user');
@@ -457,7 +481,6 @@
             document.getElementById('auth-view').classList.remove('hidden');
         }
 
-        // Show Chat View & Fetch Data from Supabase
         async function showChatView() {
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('chat-view').classList.remove('hidden');
@@ -467,7 +490,7 @@
             document.getElementById('current-user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
             await fetchAppData();
-            setupAutoPolling(); // Background silent live sync (No page reload)
+            setupAutoPolling();
 
             if (!activeChatId && defaultContacts.length > 0) {
                 selectChat(defaultContacts[0].id);
@@ -477,18 +500,15 @@
         async function fetchAppData() {
             if (!supabaseClient) return;
 
-            // Fetch all users
             const { data: usersData } = await supabaseClient.from('users').select('*');
             allUsersCache = usersData || [];
 
-            // Fetch friends
             const { data: friendsData } = await supabaseClient
                 .from('friends')
                 .select('*')
                 .eq('user_id', currentUser.id);
             myFriendsCache = friendsData ? friendsData.map(f => f.friend_id) : [];
 
-            // Fetch messages
             const { data: msgData } = await supabaseClient
                 .from('messages')
                 .select('*')
@@ -499,9 +519,6 @@
             renderContacts();
         }
 
-        // ----------------------------------------------------
-        // SILENT AUTO-POLLING (Updates messages smoothly without reload)
-        // ----------------------------------------------------
         function setupAutoPolling() {
             setInterval(async () => {
                 if (!supabaseClient || !currentUser) return;
@@ -512,7 +529,6 @@
                     .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
 
                 if (msgData) {
-                    // Only re-render if message count or content changed
                     if (msgData.length !== messagesCache.length) {
                         messagesCache = msgData;
                         if (activeChatId) {
@@ -521,10 +537,9 @@
                         renderContacts();
                     }
                 }
-            }, 2000); // Checks every 2 seconds silently in background
+            }, 2000);
         }
 
-        // Switch Sidebar Tab
         function switchSidebarTab(tab) {
             currentSidebarTab = tab;
             const chatsBtn = document.getElementById('sidebar-tab-chats');
@@ -611,7 +626,7 @@
                             <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">${contact.name}</h4>
                             <span class="text-[10px] text-slate-400 shrink-0">${lastMsg ? formatTime(lastMsg.created_at) : ''}</span>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${lastMsg ? lastMsg.text : contact.status}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${lastMsg ? (lastMsg.media_type ? '[' + lastMsg.media_type.toUpperCase() + ']' : lastMsg.text) : contact.status}</p>
                     </div>
                 `;
                 container.appendChild(item);
@@ -630,6 +645,15 @@
 
         function closeAddFriendModal() {
             document.getElementById('add-friend-modal').classList.add('hidden');
+        }
+
+        function openMediaModal() {
+            document.getElementById('media-modal').classList.remove('hidden');
+            document.getElementById('media-url-input').value = '';
+        }
+
+        function closeMediaModal() {
+            document.getElementById('media-modal').classList.add('hidden');
         }
 
         function searchGlobalUsers() {
@@ -748,12 +772,32 @@
 
                 const bubble = document.createElement('div');
                 bubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
+                
+                let contentHtml = `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>`;
+                if (msg.media_url) {
+                    if (msg.media_type === 'video') {
+                        contentHtml = `
+                            <div class="mb-2">
+                                <video src="${escapeHtml(msg.media_url)}" controls class="max-w-xs rounded-xl max-h-60 shadow-md"></video>
+                            </div>
+                            ${msg.text ? `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>` : ''}
+                        `;
+                    } else {
+                        contentHtml = `
+                            <div class="mb-2">
+                                <img src="${escapeHtml(msg.media_url)}" alt="Shared Media" class="max-w-xs rounded-xl max-h-60 object-cover shadow-md">
+                            </div>
+                            ${msg.text ? `<p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>` : ''}
+                        `;
+                    }
+                }
+
                 bubble.innerHTML = `
-                    <div class="flex items-end space-x-2 max-w-[80%] md:max-w-[70%]">
+                    <div class="flex items-end space-x-2 max-w-[85%] md:max-w-[70%]">
                         ${!isMe ? `<div class="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-200 shrink-0">${senderName.charAt(0)}</div>` : ''}
                         <div class="px-4 py-3 rounded-2xl text-sm shadow-sm ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-800 rounded-bl-none'}">
                             ${!isMe ? `<p class="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mb-1">${senderName}</p>` : ''}
-                            <p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>
+                            ${contentHtml}
                         </div>
                     </div>
                     <span class="text-[10px] text-slate-400 mt-1 px-1">${formatTime(msg.created_at)}</span>
@@ -773,7 +817,9 @@
             const newMsg = {
                 sender_id: currentUser.id,
                 receiver_id: activeChatId,
-                text: text
+                text: text,
+                media_url: null,
+                media_type: null
             };
 
             const { data, error } = await supabaseClient
@@ -788,13 +834,14 @@
                 renderMessages();
                 renderContacts();
 
-                // If chat with bot
                 if (activeChatId === 'bot_ai') {
                     setTimeout(async () => {
                         const botMsg = {
                             sender_id: 'bot_ai',
                             receiver_id: currentUser.id,
-                            text: "Thanks for messaging ChatFlow AI! I'm live on Supabase."
+                            text: "Thanks for messaging ChatFlow AI! I received your text.",
+                            media_url: null,
+                            media_type: null
                         };
                         const { data: bData } = await supabaseClient.from('messages').insert([botMsg]).select().single();
                         if (bData) {
@@ -807,8 +854,40 @@
             }
         }
 
+        async function sendMediaMessage() {
+            const mediaType = document.getElementById('media-type').value;
+            const mediaUrl = document.getElementById('media-url-input').value.trim();
+            if (!mediaUrl || !activeChatId || !supabaseClient) {
+                showModal('Error', 'Please enter a valid media URL link.', 'error');
+                return;
+            }
+
+            const newMsg = {
+                sender_id: currentUser.id,
+                receiver_id: activeChatId,
+                text: mediaType === 'video' ? 'Shared a video' : 'Shared a photo',
+                media_url: mediaUrl,
+                media_type: mediaType
+            };
+
+            const { data, error } = await supabaseClient
+                .from('messages')
+                .insert([newMsg])
+                .select()
+                .single();
+
+            if (!error && data) {
+                messagesCache.push(data);
+                closeMediaModal();
+                renderMessages();
+                renderContacts();
+            } else {
+                showModal('Error', 'Failed to send media.', 'error');
+            }
+        }
+
         function toggleDarkMode() {
-            const isDark = document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.add('dark') || document.documentElement.classList.toggle('dark');
             localStorage.setItem('chatflow_dark', isDark);
             document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
@@ -852,10 +931,11 @@
         function formatTime(timestamp) {
             if (!timestamp) return '';
             const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleTimeString([], { hour: '2-dict', minute: '2-digit' });
         }
 
         function escapeHtml(text) {
+            if (!text) return '';
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
