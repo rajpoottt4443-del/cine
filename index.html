@@ -1,358 +1,667 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineTogether - Watch Party & Live Chat</title>
+    <title>ChatFlow - Modern Auth & Messaging</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #07090e; color: #f8fafc; overflow: hidden; }
-        .glass-panel { background: rgba(19, 27, 46, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(181, 213, 237, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
-        .glass-input { background: rgba(7, 15, 30, 0.85); border: 1px solid rgba(57, 124, 184, 0.3); color: #ffffff; }
-        .glass-input:focus { border-color: #397cb8; outline: none; box-shadow: 0 0 0 2px rgba(57, 124, 184, 0.25); }
-        .btn-primary { background: linear-gradient(135deg, #102d55 0%, #397cb8 100%); border: 1px solid rgba(181, 213, 237, 0.3); box-shadow: 0 4px 14px rgba(57, 124, 184, 0.3); }
-        .btn-primary:hover { background: linear-gradient(135deg, #163a6d 0%, #468ecf 100%); }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #07090e; }
-        ::-webkit-scrollbar-thumb { background: #102d55; border-radius: 9999px; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for clean messaging UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.8);
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
 
-    <!-- 1. AUTH SCREEN (Sign In / Sign Up) -->
-    <div id="auth-screen" class="flex-1 flex items-center justify-center p-4 relative overflow-y-auto">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-md space-y-5 my-auto">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl font-extrabold text-white">CineTogether</h2>
-                <p class="text-xs text-slate-400">Watch party, screen share aur live chat ke liye sign in karein.</p>
-            </div>
+    <!-- App Container -->
+    <div id="app" class="h-full w-full flex flex-col">
 
-            <div class="flex bg-black/40 p-1 rounded-xl border border-white/10">
-                <button onclick="switchTab('signin')" id="tab-signin-btn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition">Sign In</button>
-                <button onclick="switchTab('signup')" id="tab-signup-btn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition">Sign Up</button>
-            </div>
-
-            <!-- SIGN IN FORM -->
-            <div id="signin-form" class="space-y-3.5">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="signin-email" placeholder="name@domain.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                    <div class="relative">
-                        <input type="password" id="signin-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs pr-10">
-                        <button type="button" onclick="togglePassword('signin-password', 'signin-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signin-eye">Show</button>
+        <!-- Custom Notification Modal (No alert() used) -->
+        <div id="notification-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800 transform transition-all scale-95 opacity-0" id="modal-content">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div id="modal-icon-container" class="w-10 h-10 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                        <i id="modal-icon" class="fa-solid fa-info text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-title" class="font-bold text-lg text-slate-800 dark:text-slate-100">Notification</h3>
                     </div>
                 </div>
-                <button onclick="handleSignIn()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">Sign In</button>
-            </div>
-
-            <!-- SIGN UP FORM -->
-            <div id="signup-form" class="space-y-3.5 hidden">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="signup-email" placeholder="name@domain.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs">
+                <p id="modal-message" class="text-slate-600 dark:text-slate-400 text-sm mb-6">Message goes here...</p>
+                <div class="flex justify-end">
+                    <button onclick="closeModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition shadow-lg shadow-indigo-600/20">Okay</button>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                    <div class="relative">
-                        <input type="password" id="signup-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs pr-10">
-                        <button type="button" onclick="togglePassword('signup-password', 'signup-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signup-eye">Show</button>
+            </div>
+        </div>
+
+        <!-- AUTH VIEW -->
+        <div id="auth-view" class="flex-1 flex items-center justify-center p-4">
+            <div class="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 p-8">
+                
+                <!-- Header Branding -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white text-2xl font-bold shadow-lg shadow-indigo-600/30 mb-4">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to ChatFlow</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Connect and chat instantly with friends & teams</p>
+                </div>
+
+                <!-- Tabs (Login / Signup) -->
+                <div class="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 mb-6">
+                    <button id="tab-login-btn" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">Login</button>
+                    <button id="tab-signup-btn" onclick="switchTab('signup')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Sign Up</button>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Email Address</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-envelope"></i></span>
+                            <input type="email" id="login-email" required placeholder="name@example.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2">Sign In</button>
+                </form>
+
+                <!-- SIGNUP FORM -->
+                <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Full Name</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" id="signup-name" required placeholder="John Doe" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Email Address</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-envelope"></i></span>
+                            <input type="email" id="signup-email" required placeholder="name@example.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" id="signup-password" oninput="checkPasswordMatch()" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Confirm Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-shield-check"></i></span>
+                            <input type="password" id="signup-confirm" oninput="checkPasswordMatch()" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                        <!-- Real-time Password Match Indicator -->
+                        <div id="password-match-status" class="text-xs mt-1.5 font-medium hidden"></div>
+                    </div>
+                    <button type="submit" id="signup-submit-btn" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2">Create Account</button>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- CHAT INTERVIEW / VIEW -->
+        <div id="chat-view" class="flex-1 flex overflow-hidden hidden">
+            
+            <!-- Sidebar for Contacts & Channels -->
+            <div id="sidebar" class="w-full md:w-80 lg:w-96 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-20 absolute md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+                
+                <!-- Sidebar Header -->
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md" id="current-user-avatar">
+                            U
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate" id="current-user-name">User Name</h2>
+                            <p class="text-xs text-emerald-500 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5 animate-pulse"></span>Online</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition" title="Toggle Theme">
+                            <i id="theme-icon" class="fa-solid fa-moon"></i>
+                        </button>
+                        <button onclick="logout()" class="w-9 h-9 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/30 text-rose-500 flex items-center justify-center transition" title="Log Out">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Verify Password (Confirm)</label>
+
+                <!-- Search Contacts -->
+                <div class="p-3 border-b border-slate-100 dark:border-slate-800/60">
                     <div class="relative">
-                        <input type="password" id="signup-confirm-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-2.5 text-xs pr-10">
-                        <button type="button" onclick="togglePassword('signup-confirm-password', 'signup-confirm-eye')" class="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white font-mono" id="signup-confirm-eye">Show</button>
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" id="contact-search" oninput="filterContacts()" placeholder="Search chats..." class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                     </div>
                 </div>
-                <button onclick="handleSignUp()" class="w-full btn-primary text-white font-bold py-3 rounded-xl text-xs uppercase">Create Account (Sign Up)</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- 2. LOBBY SCREEN -->
-    <div id="lobby-screen" class="flex-1 hidden flex-col items-center justify-center p-4">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg space-y-6">
-            <div class="flex items-center justify-between border-b border-white/10 pb-4">
-                <div>
-                    <h3 class="text-lg font-bold text-white" id="welcome-user">Welcome</h3>
-                    <p class="text-xs font-mono text-[#b5d5ed]" id="user-email-display">Supabase Connected</p>
+                <!-- Contact / Chat List -->
+                <div id="contact-list" class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/40">
+                    <!-- Populated dynamically via JS -->
                 </div>
-                <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline font-semibold">Logout</button>
+
             </div>
-            <div class="space-y-4">
-                <div class="bg-black/40 p-5 rounded-xl border border-white/5 space-y-3">
-                    <h4 class="text-xs font-bold text-[#b5d5ed] uppercase">Naya Watch Party Room Banayein</h4>
-                    <input type="text" id="room-title-input" placeholder="Room Title (e.g. Movie Night)" class="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs">
-                    <button onclick="createRoom()" class="w-full btn-primary text-white font-bold py-2.5 rounded-lg text-xs">Create Room & Start Movie</button>
+
+            <!-- Main Chat Area -->
+            <div id="main-chat-area" class="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 relative">
+                
+                <!-- Chat Header -->
+                <div class="h-16 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-10 shadow-sm">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="toggleMobileSidebar()" class="md:hidden w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </button>
+                        <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold" id="active-chat-avatar">
+                            #
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100" id="active-chat-name">Select a chat</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400" id="active-chat-status">Click a conversation to start messaging</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="clearCurrentChat()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition" title="Clear Chat History">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="bg-black/40 p-5 rounded-xl border border-white/5 space-y-3">
-                    <h4 class="text-xs font-bold text-[#b5d5ed] uppercase">Room Code Se Join Karein</h4>
-                    <input type="text" id="join-code-input" placeholder="e.g. CINE-4029" class="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs font-mono uppercase">
-                    <button onclick="joinRoom()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-xs">Join Room</button>
+
+                <!-- Messages Container -->
+                <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                    <!-- Placeholder when no chat is selected -->
+                    <div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 dark:text-slate-600">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-200 dark:bg-slate-900 flex items-center justify-center text-2xl mb-3 shadow-inner">
+                            <i class="fa-solid fa-paper-plane text-indigo-500/60"></i>
+                        </div>
+                        <p class="font-medium text-slate-600 dark:text-slate-400">No conversation selected</p>
+                        <p class="text-xs mt-1">Choose a contact or channel from the sidebar to begin chatting.</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 3. ROOM SCREEN (Movie Player + Screen Share + Live Chat) -->
-    <div id="room-screen" class="flex-1 hidden flex-col lg:flex-row overflow-hidden">
-        
-        <!-- Left: Movie Theater & Screen Share -->
-        <div class="flex-1 flex flex-col p-4 space-y-3 overflow-y-auto">
-            <div class="flex items-center justify-between glass-panel px-4 py-3 rounded-xl">
-                <div class="flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                    <h3 id="room-name-display" class="font-bold text-sm text-white">Room</h3>
-                    <span class="bg-black/60 px-2.5 py-0.5 rounded text-xs font-mono text-[#b5d5ed]" id="room-code-display">CINE-0000</span>
+                <!-- Chat Input Form -->
+                <div id="chat-input-area" class="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 hidden">
+                    <form onsubmit="handleSendMessage(event)" class="flex items-center space-x-2">
+                        <input type="text" id="message-input" autocomplete="off" placeholder="Type your message here..." class="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        <button type="submit" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center transition shadow-md shadow-indigo-600/25 shrink-0">
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                        </button>
+                    </form>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleScreenShare()" id="screen-share-btn" class="btn-primary text-xs px-3.5 py-2 rounded-lg font-semibold">Screen Share (Audio On)</button>
-                    <button onclick="leaveRoom()" class="bg-red-500/20 text-red-300 text-xs px-3 py-2 rounded-lg font-semibold border border-red-500/30">Leave Room</button>
-                </div>
+
             </div>
 
-            <!-- Screen Share Preview -->
-            <div id="screenshare-box" class="hidden bg-black rounded-xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center relative">
-                <video id="screenshare-video" autoplay playsinline class="w-full h-full object-contain"></video>
-            </div>
-
-            <!-- Main Movie Player -->
-            <div class="bg-black rounded-xl overflow-hidden border border-white/10 aspect-video relative flex items-center justify-center shadow-2xl">
-                <video id="movie-player" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" controls class="w-full h-full object-contain"></video>
-            </div>
-        </div>
-
-        <!-- Right: Real-Time Live Chat Sidebar -->
-        <div class="w-full lg:w-80 glass-panel border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col h-72 lg:h-auto">
-            <div class="p-3.5 border-b border-white/10 flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Room Live Chat</span>
-                <span class="text-[11px] text-cyan-300 font-mono">Supabase Realtime</span>
-            </div>
-
-            <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
-                <!-- Chat messages will load here -->
-            </div>
-
-            <div class="p-3 border-t border-white/10 bg-black/40 flex gap-2">
-                <input type="text" id="chat-input" placeholder="Kuch likhein..." class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()" class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold">Bhejein</button>
-            </div>
         </div>
 
     </div>
 
-    <!-- MAIN SCRIPT -->
-    <script type="module">
-        import { supabase } from './supabase.js';
-
+    <!-- Application Logic Script -->
+    <script>
+        // State management
         let currentUser = null;
-        let currentRoom = null;
-        let localScreenStream = null;
-        let chatSubscription = null;
+        let activeChatId = null;
+        let users = JSON.parse(localStorage.getItem('chatflow_users')) || [];
+        let messages = JSON.parse(localStorage.getItem('chatflow_messages')) || {};
+        let contacts = [
+            { id: 'general', name: 'General Lounge', type: 'channel', avatar: '#', status: 'Public Channel', icon: 'fa-globe' },
+            { id: 'tech', name: 'Tech & Dev Hub', type: 'channel', avatar: '#', status: 'Public Channel', icon: 'fa-code' },
+            { id: 'bot_ai', name: 'ChatFlow Assistant', type: 'bot', avatar: '🤖', status: 'AI Bot (Auto-reply)', icon: 'fa-robot' },
+            { id: 'sarah', name: 'Sarah Jenkins', type: 'user', avatar: 'SJ', status: 'Active 5m ago', icon: 'fa-user' },
+            { id: 'alex', name: 'Alex Rivera', type: 'user', avatar: 'AR', status: 'Online', icon: 'fa-user' }
+        ];
 
-        window.switchTab = function(tab) {
-            const signinForm = document.getElementById('signin-form');
+        // Initialize App on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('chatflow_current_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showChatView();
+            }
+            
+            // Check dark mode preference
+            if (localStorage.getItem('chatflow_dark') === 'true') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+            }
+        });
+
+        // Toggle Auth Tabs (Login / Signup)
+        function switchTab(tab) {
+            const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
-            const signinBtn = document.getElementById('tab-signin-btn');
+            const loginBtn = document.getElementById('tab-login-btn');
             const signupBtn = document.getElementById('tab-signup-btn');
 
-            if (tab === 'signin') {
-                signinForm.style.display = 'block';
-                signupForm.style.display = 'none';
-                signinBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition';
-                signupBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition';
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm";
+                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
             } else {
-                signinForm.style.display = 'none';
-                signupForm.style.display = 'block';
-                signupBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 transition';
-                signinBtn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-[#397cb8] text-white transition';
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm";
+                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
             }
-        };
+        }
 
-        window.togglePassword = function(inputId, btnId) {
-            const input = document.getElementById(inputId);
-            const btn = document.getElementById(btnId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.innerText = 'Hide';
-            } else {
-                input.type = 'password';
-                btn.innerText = 'Show';
-            }
-        };
+        // Real-time password matching validation for Signup
+        function checkPasswordMatch() {
+            const pass = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+            const statusEl = document.getElementById('password-match-status');
+            const submitBtn = document.getElementById('signup-submit-btn');
 
-        window.handleSignIn = async function() {
-            const email = document.getElementById('signin-email').value.trim();
-            const password = document.getElementById('signin-password').value.trim();
-            if (!email || !password) { alert('Email aur password likhein!'); return; }
-
-            let { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                alert('Login Error: ' + error.message);
+            if (!confirm) {
+                statusEl.classList.add('hidden');
                 return;
             }
-            currentUser = data.user;
-            showLobby();
-        };
 
-        window.handleSignUp = async function() {
-            const email = document.getElementById('signup-email').value.trim();
-            const password = document.getElementById('signup-password').value.trim();
-            const confirmPassword = document.getElementById('signup-confirm-password').value.trim();
+            statusEl.classList.remove('hidden');
+            if (pass === confirm) {
+                statusEl.textContent = "✓ Passwords match perfectly";
+                statusEl.className = "text-xs mt-1.5 font-medium text-emerald-500";
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                statusEl.textContent = "✕ Passwords do not match";
+                statusEl.className = "text-xs mt-1.5 font-medium text-rose-500";
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
 
-            if (!email || !password || !confirmPassword) { alert('Sabhi fields bharein!'); return; }
-            if (password !== confirmPassword) { alert('Password match nahi kar rahe!'); return; }
+        // Handle Signup Submission
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim().toLowerCase();
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
 
-            let { data, error } = await supabase.auth.signUp({ email, password });
-            if (error) {
-                alert('Sign Up Error: ' + error.message);
+            if (password !== confirm) {
+                showModal('Validation Error', 'Passwords do not match. Please verify.', 'error');
                 return;
             }
-            currentUser = data.user;
-            alert('Account successfully ban gaya aur login ho gaya!');
-            showLobby();
-        };
 
-        window.handleLogout = async function() {
-            await supabase.auth.signOut();
+            // Check if user already exists
+            const existing = users.find(u => u.email === email);
+            if (existing) {
+                showModal('Account Exists', 'An account with this email already exists. Please log in.', 'error');
+                switchTab('login');
+                return;
+            }
+
+            const newUser = { id: 'user_' + Date.now(), name, email, password };
+            users.push(newUser);
+            localStorage.setItem('chatflow_users', JSON.stringify(users));
+
+            // Log in the user immediately
+            currentUser = newUser;
+            localStorage.setItem('chatflow_current_user', JSON.stringify(currentUser));
+            
+            showModal('Success!', 'Account created successfully. Welcome to ChatFlow!', 'success');
+            setTimeout(() => {
+                closeModal();
+                showChatView();
+            }, 600);
+        }
+
+        // Handle Login Submission
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+
+            const user = users.find(u => u.email === email && u.password === password);
+            if (!user) {
+                showModal('Login Failed', 'Invalid email address or password. Please try again.', 'error');
+                return;
+            }
+
+            currentUser = user;
+            localStorage.setItem('chatflow_current_user', JSON.stringify(currentUser));
+            showChatView();
+        }
+
+        // Logout User
+        function logout() {
             currentUser = null;
-            currentRoom = null;
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('lobby-screen').style.display = 'none';
-            document.getElementById('room-screen').style.display = 'none';
-        };
-
-        function showLobby() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('lobby-screen').style.display = 'flex';
-            document.getElementById('welcome-user').innerText = `User: ${currentUser.email}`;
+            localStorage.removeItem('chatflow_current_user');
+            document.getElementById('chat-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.remove('hidden');
         }
 
-        window.createRoom = async function() {
-            const title = document.getElementById('room-title-input').value.trim() || 'Watch Party';
-            const room_code = 'CINE-' + Math.floor(1000 + Math.random() * 9000);
+        // Switch to Chat View
+        function showChatView() {
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('chat-view').classList.remove('hidden');
+            
+            // Set current user info in sidebar
+            document.getElementById('current-user-name').textContent = currentUser.name;
+            document.getElementById('current-user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
-            let { data, error } = await supabase.from('rooms').insert([
-                { room_code, name: title, host_id: currentUser.id, is_playing: false, playback_position: 0 }
-            ]).select();
-
-            if (error) { alert('Room creation error: ' + error.message); return; }
-            currentRoom = data[0];
-            showRoom();
-        };
-
-        window.joinRoom = async function() {
-            const code = document.getElementById('join-code-input').value.trim().toUpperCase();
-            if (!code) { alert('Room code likhein!'); return; }
-
-            let { data, error } = await supabase.from('rooms').select('*').eq('room_code', code).single();
-            if (error || !data) { alert('Room nahi mila!'); return; }
-            currentRoom = data;
-            showRoom();
-        };
-
-        function showRoom() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('lobby-screen').style.display = 'none';
-            document.getElementById('room-screen').style.display = 'flex';
-            document.getElementById('room-name-display').innerText = currentRoom.name;
-            document.getElementById('room-code-display').innerText = currentRoom.room_code;
-            loadMessages();
-            subscribeToChat();
+            renderContacts();
+            
+            // Default select general chat if none active
+            if (!activeChatId && contacts.length > 0) {
+                selectChat(contacts[0].id);
+            }
         }
 
-        window.leaveRoom = function() {
-            if (chatSubscription) { supabase.removeChannel(chatSubscription); }
-            currentRoom = null;
-            showLobby();
-        };
+        // Render Contacts & Channels list
+        function renderContacts(filterQuery = '') {
+            const container = document.getElementById('contact-list');
+            container.innerHTML = '';
 
-        // --- REAL-TIME CHAT FUNCTIONS ---
-        window.sendChatMessage = async function() {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if (!text || !currentRoom || !currentUser) return;
+            const filtered = contacts.filter(c => c.name.toLowerCase().includes(filterQuery.toLowerCase()));
 
-            let { error } = await supabase.from('messages').insert([
-                {
-                    room_code: currentRoom.room_code,
-                    user_name: currentUser.email.split('@')[0],
-                    message: text
-                }
-            ]);
-
-            if (error) {
-                alert('Message send error: ' + error.message);
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">No chats found</div>`;
                 return;
             }
-            input.value = '';
-        };
 
-        async function loadMessages() {
-            const container = document.getElementById('chat-messages-container');
-            let { data, error } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('room_code', currentRoom.room_code)
-                .order('created_at', { ascending: true });
+            filtered.forEach(contact => {
+                const isActive = activeChatId === contact.id;
+                const lastMsg = getLastMessage(contact.id);
 
-            if (error) { return; }
+                const item = document.createElement('div');
+                item.className = `p-3.5 flex items-center space-x-3 cursor-pointer transition ${isActive ? 'bg-indigo-50 dark:bg-indigo-950/40 border-l-4 border-indigo-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
+                item.onclick = () => {
+                    selectChat(contact.id);
+                    // Close sidebar on mobile when chat selected
+                    if (window.innerWidth < 768) {
+                        toggleMobileSidebar();
+                    }
+                };
 
-            container.innerHTML = '';
-            data.forEach(m => {
-                appendMessageToUI(m);
+                let avatarHtml = '';
+                if (contact.type === 'channel') {
+                    avatarHtml = `<div class="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0"><i class="fa-solid ${contact.icon}"></i></div>`;
+                } else if (contact.type === 'bot') {
+                    avatarHtml = `<div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">${contact.avatar}</div>`;
+                } else {
+                    avatarHtml = `<div class="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">${contact.avatar}</div>`;
+                }
+
+                item.innerHTML = `
+                    ${avatarHtml}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-0.5">
+                            <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">${contact.name}</h4>
+                            <span class="text-[10px] text-slate-400 shrink-0">${lastMsg ? formatTime(lastMsg.timestamp) : ''}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${lastMsg ? lastMsg.text : contact.status}</p>
+                    </div>
+                `;
+                container.appendChild(item);
             });
-            container.scrollTop = container.scrollHeight;
         }
 
-        function subscribeToChat() {
-            chatSubscription = supabase
-                .channel('room-chat-' + currentRoom.room_code)
-                .on('postgres_changes', {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `room_code=eq.${currentRoom.room_code}`
-                }, payload => {
-                    appendMessageToUI(payload.new);
-                })
-                .subscribe();
+        // Filter contacts on search input
+        function filterContacts() {
+            const query = document.getElementById('contact-search').value;
+            renderContacts(query);
         }
 
-        function appendMessageToUI(m) {
-            const container = document.getElementById('chat-messages-container');
-            const isMe = m.user_name === currentUser.email.split('@')[0];
-            const div = document.createElement('div');
-            div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
-            div.innerHTML = `
-                <span class="text-[9px] text-slate-400 mb-0.5">${m.user_name}</span>
-                <div class="px-3 py-1.5 rounded-xl text-xs max-w-[85%] ${isMe ? 'bg-[#397cb8] text-white' : 'bg-slate-800 text-slate-200 border border-white/5'}">${m.message}</div>
-            `;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
+        // Select a Chat Channel or Contact
+        function selectChat(contactId) {
+            activeChatId = contactId;
+            const contact = contacts.find(c => c.id === contactId);
+            if (!contact) return;
 
-        // --- SCREEN SHARE WITH AUDIO ---
-        window.toggleScreenShare = async function() {
-            const videoEl = document.getElementById('screenshare-video');
-            const boxEl = document.getElementById('screenshare-box');
-            if (!localScreenStream) {
-                try {
-                    localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                    videoEl.srcObject = localScreenStream;
-                    boxEl.classList.remove('hidden');
-                } catch (e) { alert('Screen share cancel ho gayi.'); }
+            // Update Header info
+            document.getElementById('active-chat-name').textContent = contact.name;
+            document.getElementById('active-chat-status').textContent = contact.status;
+            
+            const avatarEl = document.getElementById('active-chat-avatar');
+            if (contact.type === 'channel') {
+                avatarEl.innerHTML = `<i class="fa-solid ${contact.icon}"></i>`;
+                avatarEl.className = "w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm";
+            } else if (contact.type === 'bot') {
+                avatarEl.innerHTML = contact.avatar;
+                avatarEl.className = "w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base";
             } else {
-                localScreenStream.getTracks().forEach(t => t.stop());
-                localScreenStream = null;
-                boxEl.classList.add('hidden');
+                avatarEl.innerHTML = contact.avatar;
+                avatarEl.className = "w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm";
             }
-        };
+
+            // Show input box
+            document.getElementById('chat-input-area').classList.remove('hidden');
+
+            renderContacts(document.getElementById('contact-search').value);
+            renderMessages();
+        }
+
+        // Get Last Message for preview in contact list
+        function getLastMessage(contactId) {
+            const chatMessages = messages[contactId] || [];
+            return chatMessages.length > 0 ? chatMessages[chatMessages.length - 1] : null;
+        }
+
+        // Render Messages in active chat window
+        function renderMessages() {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+
+            const chatMessages = messages[activeChatId] || [];
+
+            if (chatMessages.length === 0) {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-900 flex items-center justify-center text-indigo-500 mb-2">
+                            <i class="fa-solid fa-comment-dots text-lg"></i>
+                        </div>
+                        <p class="text-sm font-medium">No messages yet in this conversation</p>
+                        <p class="text-xs mt-1">Send a greeting to get the conversation started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            chatMessages.forEach(msg => {
+                const isMe = msg.senderId === currentUser.id;
+                const bubble = document.createElement('div');
+                bubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
+
+                bubble.innerHTML = `
+                    <div class="flex items-end space-x-2 max-w-[80%] md:max-w-[70%]">
+                        ${!isMe ? `<div class="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-200 shrink-0">${msg.senderName.charAt(0)}</div>` : ''}
+                        <div class="px-4 py-3 rounded-2xl text-sm shadow-sm ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-800 rounded-bl-none'}">
+                            ${!isMe ? `<p class="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mb-1">${msg.senderName}</p>` : ''}
+                            <p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 mt-1 px-1">${formatTime(msg.timestamp)}</span>
+                `;
+                container.appendChild(bubble);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Handle Sending Message
+        function handleSendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text || !activeChatId) return;
+
+            if (!messages[activeChatId]) {
+                messages[activeChatId] = [];
+            }
+
+            const newMsg = {
+                id: 'msg_' + Date.now(),
+                senderId: currentUser.id,
+                senderName: currentUser.name,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            messages[activeChatId].push(newMsg);
+            localStorage.setItem('chatflow_messages', JSON.stringify(messages));
+
+            input.value = '';
+            renderMessages();
+            renderContacts(document.getElementById('contact-search').value);
+
+            // Simulate Bot or Contact Auto-Reply for engaging experience
+            const activeContact = contacts.find(c => c.id === activeChatId);
+            if (activeContact && (activeContact.type === 'bot' || activeContact.type === 'user')) {
+                setTimeout(() => simulateReply(activeContact), 1200);
+            }
+        }
+
+        // Simulate AI or Contact reply
+        function simulateReply(contact) {
+            if (!messages[activeChatId]) messages[activeChatId] = [];
+
+            let replyText = "Thanks for your message! I've received it loud and clear.";
+            if (contact.type === 'bot') {
+                const botResponses = [
+                    "That's super interesting! Tell me more.",
+                    "I'm ChatFlow AI, ready to assist you with any questions.",
+                    "Got it! Is there anything else you'd like to discuss?",
+                    "Fascinating perspective! How can I help further?"
+                ];
+                replyText = botResponses[Math.floor(Math.random() * botResponses.length)];
+            } else {
+                replyText = `Hey ${currentUser.name}! Got your message. Let's catch up soon!`;
+            }
+
+            const replyMsg = {
+                id: 'msg_' + Date.now(),
+                senderId: contact.id,
+                senderName: contact.name,
+                text: replyText,
+                timestamp: Date.now()
+            };
+
+            messages[activeChatId].push(replyMsg);
+            localStorage.setItem('chatflow_messages', JSON.stringify(messages));
+            
+            // Only re-render if user is still in the same chat
+            if (activeChatId === contact.id) {
+                renderMessages();
+            }
+            renderContacts(document.getElementById('contact-search').value);
+        }
+
+        // Clear Current Chat history
+        function clearCurrentChat() {
+            if (!activeChatId) return;
+            messages[activeChatId] = [];
+            localStorage.setItem('chatflow_messages', JSON.stringify(messages));
+            renderMessages();
+            renderContacts();
+        }
+
+        // Toggle Dark/Light Mode
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('chatflow_dark', isDark);
+            document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        // Toggle Mobile Sidebar Drawer
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        // Custom Modal helper
+        function showModal(title, message, type = 'info') {
+            const modal = document.getElementById('notification-modal');
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            
+            const iconContainer = document.getElementById('modal-icon-container');
+            const icon = document.getElementById('modal-icon');
+            
+            if (type === 'error') {
+                iconContainer.className = "w-10 h-10 rounded-full flex items-center justify-center bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400";
+                icon.className = "fa-solid fa-triangle-exclamation text-lg";
+            } else {
+                iconContainer.className = "w-10 h-10 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400";
+                icon.className = "fa-solid fa-circle-check text-lg";
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('notification-modal');
+            const content = document.getElementById('modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Utility formatting
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
     </script>
 </body>
 </html>
