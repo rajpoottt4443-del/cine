@@ -239,7 +239,6 @@
                 <!-- Chat Input Form -->
                 <div id="chat-input-area" class="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 hidden">
                     <form onsubmit="handleSendMessage(event)" class="flex items-center space-x-2">
-                        <!-- Media Sharing Button -->
                         <button type="button" onclick="openMediaModal()" class="w-11 h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition shrink-0" title="Share Photo or Video">
                             <i class="fa-solid fa-photo-film"></i>
                         </button>
@@ -702,11 +701,15 @@
                 .insert([{ user_id: currentUser.id, friend_id: friendId }]);
 
             if (!error) {
-                myFriendsCache.push(friendId);
+                if (!myFriendsCache.includes(friendId)) {
+                    myFriendsCache.push(friendId);
+                }
                 updateFriendCount();
                 searchGlobalUsers();
                 renderContacts();
                 showModal('Friend Added!', 'Friend added successfully in cloud database!', 'success');
+            } else {
+                showModal('Notice', 'Already in your friends list!', 'info');
             }
         }
 
@@ -887,7 +890,7 @@
         }
 
         function toggleDarkMode() {
-            const isDark = document.documentElement.classList.add('dark') || document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('chatflow_dark', isDark);
             document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
@@ -931,7 +934,7 @@
         function formatTime(timestamp) {
             if (!timestamp) return '';
             const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { hour: '2-dict', minute: '2-digit' });
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
         function escapeHtml(text) {
