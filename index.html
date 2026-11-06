@@ -287,10 +287,10 @@
         </div>
     </div>
 
-    <!-- Application Logic Script with Supabase Integration -->
+    <!-- Application Logic Script with Supabase Integration & Auto-Polling -->
     <script>
         // ----------------------------------------------------
-        // SUPABASE CONFIGURATION (Integrated)
+        // SUPABASE CONFIGURATION
         // ----------------------------------------------------
         const SUPABASE_URL = 'https://guofvbpjsdyngalozvvp.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_7vtoIBWTZ2yoacIqkoRQrQ_U2ckTE_g';
@@ -467,7 +467,7 @@
             document.getElementById('current-user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
             await fetchAppData();
-            setupRealtimeSubscriptions();
+            setupAutoPolling(); // Background silent live sync (No page reload)
 
             if (!activeChatId && defaultContacts.length > 0) {
                 selectChat(defaultContacts[0].id);
@@ -499,21 +499,29 @@
             renderContacts();
         }
 
-        // Real-time Supabase subscriptions
-        function setupRealtimeSubscriptions() {
-            if (!supabaseClient) return;
+        // ----------------------------------------------------
+        // SILENT AUTO-POLLING (Updates messages smoothly without reload)
+        // ----------------------------------------------------
+        function setupAutoPolling() {
+            setInterval(async () => {
+                if (!supabaseClient || !currentUser) return;
 
-            supabaseClient
-                .channel('public:messages')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                    const newMsg = payload.new;
-                    messagesCache.push(newMsg);
-                    if (activeChatId === newMsg.sender_id || activeChatId === newMsg.receiver_id || activeChatId === 'general' || activeChatId === 'tech') {
-                        renderMessages();
+                const { data: msgData } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
+
+                if (msgData) {
+                    // Only re-render if message count or content changed
+                    if (msgData.length !== messagesCache.length) {
+                        messagesCache = msgData;
+                        if (activeChatId) {
+                            renderMessages();
+                        }
+                        renderContacts();
                     }
-                    renderContacts();
-                })
-                .subscribe();
+                }
+            }, 2000); // Checks every 2 seconds silently in background
         }
 
         // Switch Sidebar Tab
