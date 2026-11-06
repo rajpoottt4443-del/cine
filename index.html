@@ -464,11 +464,29 @@
             const { data: usersData } = await supabaseClient.from('users').select('*');
             allUsersCache = usersData || [];
 
-            const { data: friendsData } = await supabaseClient
+            // Fetch friends where user is either user_id or friend_id for robust connection matching
+            const { data: friendsData1 } = await supabaseClient
                 .from('friends')
                 .select('*')
                 .eq('user_id', currentUser.id);
-            myFriendsCache = friendsData ? friendsData.map(f => f.friend_id) : [];
+
+            const { data: friendsData2 } = await supabaseClient
+                .from('friends')
+                .select('*')
+                .eq('friend_id', currentUser.id);
+
+            let fSet = new Set();
+            if (friendsData1) {
+                friendsData1.forEach(f => {
+                    if (f.friend_id !== currentUser.id) fSet.add(f.friend_id);
+                });
+            }
+            if (friendsData2) {
+                friendsData2.forEach(f => {
+                    if (f.user_id !== currentUser.id) fSet.add(f.user_id);
+                });
+            }
+            myFriendsCache = Array.from(fSet);
 
             const { data: msgData } = await supabaseClient
                 .from('messages')
