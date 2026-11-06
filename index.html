@@ -82,7 +82,7 @@
                         <i class="fa-solid fa-comments"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to ChatFlow</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Connect and chat instantly with friends & teams</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Connect with unique usernames & chat instantly</p>
                 </div>
 
                 <!-- Tabs (Login / Signup) -->
@@ -94,10 +94,10 @@
                 <!-- LOGIN FORM -->
                 <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Email Address</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Username or Email</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-envelope"></i></span>
-                            <input type="email" id="login-email" required placeholder="name@example.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-user-tag"></i></span>
+                            <input type="text" id="login-identifier" required placeholder="@username or name@example.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         </div>
                     </div>
                     <div>
@@ -116,8 +116,16 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Full Name</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
-                            <input type="text" id="signup-name" required placeholder="John Doe" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                            <input type="text" id="signup-name" required placeholder="Talha Ahmed" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Unique Username</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold">@</span>
+                            <input type="text" id="signup-username" oninput="checkUsernameAvailability()" required placeholder="talha" class="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        </div>
+                        <div id="username-status" class="text-xs mt-1.5 font-medium hidden"></div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Email Address</label>
@@ -148,7 +156,7 @@
             </div>
         </div>
 
-        <!-- CHAT INTERVIEW / VIEW -->
+        <!-- CHAT VIEW -->
         <div id="chat-view" class="flex-1 flex overflow-hidden hidden">
             
             <!-- Sidebar for Contacts & Channels -->
@@ -156,16 +164,16 @@
                 
                 <!-- Sidebar Header -->
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md" id="current-user-avatar">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md shrink-0" id="current-user-avatar">
                             U
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <h2 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate" id="current-user-name">User Name</h2>
-                            <p class="text-xs text-emerald-500 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5 animate-pulse"></span>Online</p>
+                            <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate" id="current-user-handle">@username</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-1">
+                    <div class="flex items-center space-x-1 shrink-0">
                         <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition" title="Toggle Theme">
                             <i id="theme-icon" class="fa-solid fa-moon"></i>
                         </button>
@@ -179,7 +187,7 @@
                 <div class="p-3 border-b border-slate-100 dark:border-slate-800/60 flex items-center space-x-2">
                     <div class="relative flex-1">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-search"></i></span>
-                        <input type="text" id="contact-search" oninput="filterContacts()" placeholder="Search chats..." class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                        <input type="text" id="contact-search" oninput="renderContacts()" placeholder="Search chats..." class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                     </div>
                     <button onclick="openAddFriendModal()" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition shrink-0 shadow-sm" title="Find & Add Users">
                         <i class="fa-solid fa-user-plus text-xs"></i>
@@ -261,7 +269,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">Find & Add Friends</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Search registered users on ChatFlow</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Search by username (@username) or name</p>
                     </div>
                 </div>
                 <button onclick="closeAddFriendModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center transition">
@@ -272,7 +280,7 @@
             <!-- Search input for global users -->
             <div class="relative mb-4">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" id="global-user-search" oninput="searchGlobalUsers()" placeholder="Search by name or email..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                <input type="text" id="global-user-search" oninput="searchGlobalUsers()" placeholder="Search @username or name..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
             </div>
 
             <!-- Results List -->
@@ -338,6 +346,34 @@
             }
         }
 
+        // Real-time unique username availability check
+        function checkUsernameAvailability() {
+            let uname = document.getElementById('signup-username').value.trim().toLowerCase();
+            uname = uname.replace(/^@/, ''); // remove leading @ if user typed it
+            const statusEl = document.getElementById('username-status');
+            const submitBtn = document.getElementById('signup-submit-btn');
+
+            if (!uname) {
+                statusEl.classList.add('hidden');
+                return;
+            }
+
+            statusEl.classList.remove('hidden');
+            const exists = users.some(u => u.username === uname);
+
+            if (exists) {
+                statusEl.textContent = "✕ Username '@" + uname + "' is already taken";
+                statusEl.className = "text-xs mt-1.5 font-medium text-rose-500";
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                statusEl.textContent = "✓ Username '@" + uname + "' is available";
+                statusEl.className = "text-xs mt-1.5 font-medium text-emerald-500";
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
         // Real-time password matching validation for Signup
         function checkPasswordMatch() {
             const pass = document.getElementById('signup-password').value;
@@ -368,6 +404,8 @@
         function handleSignup(e) {
             e.preventDefault();
             const name = document.getElementById('signup-name').value.trim();
+            let username = document.getElementById('signup-username').value.trim().toLowerCase();
+            username = username.replace(/^@/, '');
             const email = document.getElementById('signup-email').value.trim().toLowerCase();
             const password = document.getElementById('signup-password').value;
             const confirm = document.getElementById('signup-confirm').value;
@@ -377,15 +415,21 @@
                 return;
             }
 
-            // Check if user already exists
-            const existing = users.find(u => u.email === email);
-            if (existing) {
+            // Check if username or email already exists
+            const existingEmail = users.find(u => u.email === email);
+            if (existingEmail) {
                 showModal('Account Exists', 'An account with this email already exists. Please log in.', 'error');
                 switchTab('login');
                 return;
             }
 
-            const newUser = { id: 'user_' + Date.now(), name, email, password };
+            const existingUsername = users.find(u => u.username === username);
+            if (existingUsername) {
+                showModal('Username Taken', 'This unique username is already taken. Please choose another.', 'error');
+                return;
+            }
+
+            const newUser = { id: 'user_' + Date.now(), name, username, email, password };
             users.push(newUser);
             localStorage.setItem('chatflow_users', JSON.stringify(users));
 
@@ -400,15 +444,16 @@
             }, 600);
         }
 
-        // Handle Login Submission
+        // Handle Login Submission (supports username or email)
         function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            let identifier = document.getElementById('login-identifier').value.trim().toLowerCase();
+            identifier = identifier.replace(/^@/, '');
             const password = document.getElementById('login-password').value;
 
-            const user = users.find(u => u.email === email && u.password === password);
+            const user = users.find(u => (u.username === identifier || u.email === identifier) && u.password === password);
             if (!user) {
-                showModal('Login Failed', 'Invalid email address or password. Please try again.', 'error');
+                showModal('Login Failed', 'Invalid username/email or password. Please try again.', 'error');
                 return;
             }
 
@@ -432,6 +477,7 @@
             
             // Set current user info in sidebar
             document.getElementById('current-user-name').textContent = currentUser.name;
+            document.getElementById('current-user-handle').textContent = '@' + currentUser.username;
             document.getElementById('current-user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
             updateFriendCount();
@@ -456,7 +502,7 @@
                 friendsBtn.className = "flex-1 py-3 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 transition";
                 chatsBtn.className = "flex-1 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition";
             }
-            renderContacts(document.getElementById('contact-search').value);
+            renderContacts();
         }
 
         // Get list of current active contacts / channels + friend chats
@@ -471,9 +517,10 @@
                     list.push({
                         id: friendUser.id,
                         name: friendUser.name,
+                        username: friendUser.username,
                         type: 'user',
                         avatar: friendUser.name.charAt(0).toUpperCase(),
-                        status: 'Connected Friend',
+                        status: '@' + friendUser.username,
                         icon: 'fa-user'
                     });
                 }
@@ -482,9 +529,10 @@
         }
 
         // Render Contacts & Channels list
-        function renderContacts(filterQuery = '') {
+        function renderContacts() {
             const container = document.getElementById('contact-list');
             container.innerHTML = '';
+            const filterQuery = document.getElementById('contact-search').value.toLowerCase().trim();
 
             let listToRender = [];
             const allAvailable = getActiveContactsList();
@@ -497,7 +545,7 @@
                 listToRender = allAvailable.filter(c => c.type === 'user' && myFriends.includes(c.id));
             }
 
-            const filtered = listToRender.filter(c => c.name.toLowerCase().includes(filterQuery.toLowerCase()));
+            const filtered = listToRender.filter(c => c.name.toLowerCase().includes(filterQuery) || (c.username && c.username.toLowerCase().includes(filterQuery)));
 
             if (filtered.length === 0) {
                 container.innerHTML = `
@@ -566,16 +614,17 @@
 
         // Search through all registered users in system for adding friends
         function searchGlobalUsers() {
-            const query = document.getElementById('global-user-search').value.toLowerCase().trim();
+            let query = document.getElementById('global-user-search').value.toLowerCase().trim();
+            query = query.replace(/^@/, '');
             const resultsContainer = document.getElementById('global-user-results');
             resultsContainer.innerHTML = '';
 
             // Filter out current user
             const otherUsers = users.filter(u => u.id !== currentUser.id);
-            const filtered = otherUsers.filter(u => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
+            const filtered = otherUsers.filter(u => u.username.toLowerCase().includes(query) || u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
 
             if (filtered.length === 0) {
-                resultsContainer.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">No registered users found matching "${query}"</div>`;
+                resultsContainer.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">No registered users found matching "@${query}"</div>`;
                 return;
             }
 
@@ -587,16 +636,16 @@
                 const row = document.createElement('div');
                 row.className = "p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition";
                 row.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">
                             ${user.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-100">${user.name}</h4>
-                            <p class="text-xs text-slate-400">${user.email}</p>
+                        <div class="min-w-0">
+                            <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate">${user.name}</h4>
+                            <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">@${user.username}</p>
                         </div>
                     </div>
-                    <div>
+                    <div class="shrink-0 ml-2">
                         ${isAlreadyFriend ? 
                             `<span class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-semibold rounded-lg">Connected</span>` :
                             `<button onclick="addFriend('${user.id}')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition shadow-sm">Add Friend</button>`
@@ -652,7 +701,7 @@
             // Show input box
             document.getElementById('chat-input-area').classList.remove('hidden');
 
-            renderContacts(document.getElementById('contact-search').value);
+            renderContacts();
             renderMessages();
         }
 
@@ -727,7 +776,7 @@
 
             input.value = '';
             renderMessages();
-            renderContacts(document.getElementById('contact-search').value);
+            renderContacts();
 
             // Simulate Bot or Contact Auto-Reply for engaging experience
             const allContacts = getActiveContactsList();
@@ -768,7 +817,7 @@
             if (activeChatId === contact.id) {
                 renderMessages();
             }
-            renderContacts(document.getElementById('contact-search').value);
+            renderContacts();
         }
 
         // Clear Current Chat history
