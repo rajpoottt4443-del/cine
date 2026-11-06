@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatFlow - Modern Auth & Messaging</title>
+    <title>ChatFlow - Cloud Supabase Auth & Messaging</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -24,6 +24,8 @@
             }
         }
     </script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Inter Font -->
@@ -32,7 +34,6 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar for clean messaging UI */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -54,7 +55,7 @@
     <!-- App Container -->
     <div id="app" class="h-full w-full flex flex-col">
 
-        <!-- Custom Notification Modal (No alert() used) -->
+        <!-- Custom Notification Modal -->
         <div id="notification-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
             <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-800 transform transition-all scale-95 opacity-0" id="modal-content">
                 <div class="flex items-center space-x-3 mb-4">
@@ -82,7 +83,7 @@
                         <i class="fa-solid fa-comments"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to ChatFlow</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Connect with unique usernames & chat instantly</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Live Cloud Messaging via Supabase</p>
                 </div>
 
                 <!-- Tabs (Login / Signup) -->
@@ -116,16 +117,15 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Full Name</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
-                            <input type="text" id="signup-name" required placeholder="Talha Ahmed" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                            <input type="text" id="signup-name" required placeholder="Muhammad Talha" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Unique Username</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold">@</span>
-                            <input type="text" id="signup-username" oninput="checkUsernameAvailability()" required placeholder="talha" class="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+                            <input type="text" id="signup-username" required placeholder="talha" class="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         </div>
-                        <div id="username-status" class="text-xs mt-1.5 font-medium hidden"></div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Email Address</label>
@@ -147,7 +147,6 @@
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i class="fa-solid fa-shield-check"></i></span>
                             <input type="password" id="signup-confirm" oninput="checkPasswordMatch()" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
                         </div>
-                        <!-- Real-time Password Match Indicator -->
                         <div id="password-match-status" class="text-xs mt-1.5 font-medium hidden"></div>
                     </div>
                     <button type="submit" id="signup-submit-btn" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/25 mt-2">Create Account</button>
@@ -224,16 +223,10 @@
                             <p class="text-xs text-slate-500 dark:text-slate-400" id="active-chat-status">Click a conversation to start messaging</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="clearCurrentChat()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition" title="Clear Chat History">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Messages Container -->
                 <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-                    <!-- Placeholder when no chat is selected -->
                     <div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 dark:text-slate-600">
                         <div class="w-16 h-16 rounded-2xl bg-slate-200 dark:bg-slate-900 flex items-center justify-center text-2xl mb-3 shadow-inner">
                             <i class="fa-solid fa-paper-plane text-indigo-500/60"></i>
@@ -294,39 +287,46 @@
         </div>
     </div>
 
-    <!-- Application Logic Script -->
+    <!-- Application Logic Script with Supabase Integration -->
     <script>
-        // State management
+        // ----------------------------------------------------
+        // SUPABASE CONFIGURATION (Yahan apni details dalen)
+        // ----------------------------------------------------
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        const supabaseClient = window.supabase ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
         let currentUser = null;
         let activeChatId = null;
         let currentSidebarTab = 'chats'; // 'chats' or 'friends'
-        let users = JSON.parse(localStorage.getItem('chatflow_users')) || [];
-        let messages = JSON.parse(localStorage.getItem('chatflow_messages')) || {};
-        let friendConnections = JSON.parse(localStorage.getItem('chatflow_friends')) || {}; // { userId: [friendIds...] }
         
-        // Default base contacts/channels
-        let defaultContacts = [
+        let allUsersCache = [];
+        let myFriendsCache = [];
+        let messagesCache = [];
+
+        // Default channels / bot
+        const defaultContacts = [
             { id: 'general', name: 'General Lounge', type: 'channel', avatar: '#', status: 'Public Channel', icon: 'fa-globe' },
             { id: 'tech', name: 'Tech & Dev Hub', type: 'channel', avatar: '#', status: 'Public Channel', icon: 'fa-code' },
             { id: 'bot_ai', name: 'ChatFlow Assistant', type: 'bot', avatar: '🤖', status: 'AI Bot (Auto-reply)', icon: 'fa-robot' }
         ];
 
         // Initialize App on Load
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('chatflow_current_user');
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedUser = sessionStorage.getItem('chatflow_current_user');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
-                showChatView();
+                await showChatView();
             }
             
-            // Check dark mode preference
             if (localStorage.getItem('chatflow_dark') === 'true') {
                 document.documentElement.classList.add('dark');
                 document.getElementById('theme-icon').className = 'fa-solid fa-sun';
             }
         });
 
-        // Toggle Auth Tabs (Login / Signup)
+        // Toggle Auth Tabs
         function switchTab(tab) {
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
@@ -346,35 +346,7 @@
             }
         }
 
-        // Real-time unique username availability check
-        function checkUsernameAvailability() {
-            let uname = document.getElementById('signup-username').value.trim().toLowerCase();
-            uname = uname.replace(/^@/, ''); // remove leading @ if user typed it
-            const statusEl = document.getElementById('username-status');
-            const submitBtn = document.getElementById('signup-submit-btn');
-
-            if (!uname) {
-                statusEl.classList.add('hidden');
-                return;
-            }
-
-            statusEl.classList.remove('hidden');
-            const exists = users.some(u => u.username === uname);
-
-            if (exists) {
-                statusEl.textContent = "✕ Username '@" + uname + "' is already taken";
-                statusEl.className = "text-xs mt-1.5 font-medium text-rose-500";
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                statusEl.textContent = "✓ Username '@" + uname + "' is available";
-                statusEl.className = "text-xs mt-1.5 font-medium text-emerald-500";
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        // Real-time password matching validation for Signup
+        // Real-time password matching validation
         function checkPasswordMatch() {
             const pass = document.getElementById('signup-password').value;
             const confirm = document.getElementById('signup-confirm').value;
@@ -400,96 +372,151 @@
             }
         }
 
-        // Handle Signup Submission
-        function handleSignup(e) {
+        // Handle Signup with Supabase
+        async function handleSignup(e) {
             e.preventDefault();
+            if (!supabaseClient) {
+                showModal('Configuration Error', 'Supabase URL and Anon Key are required in code.', 'error');
+                return;
+            }
+
             const name = document.getElementById('signup-name').value.trim();
-            let username = document.getElementById('signup-username').value.trim().toLowerCase();
-            username = username.replace(/^@/, '');
+            let username = document.getElementById('signup-username').value.trim().toLowerCase().replace(/^@/, '');
             const email = document.getElementById('signup-email').value.trim().toLowerCase();
             const password = document.getElementById('signup-password').value;
             const confirm = document.getElementById('signup-confirm').value;
 
             if (password !== confirm) {
-                showModal('Validation Error', 'Passwords do not match. Please verify.', 'error');
+                showModal('Validation Error', 'Passwords do not match.', 'error');
                 return;
             }
 
-            // Check if username or email already exists
-            const existingEmail = users.find(u => u.email === email);
-            if (existingEmail) {
-                showModal('Account Exists', 'An account with this email already exists. Please log in.', 'error');
-                switchTab('login');
+            // Check if username or email exists
+            const { data: existing } = await supabaseClient
+                .from('users')
+                .select('*')
+                .or(`username.eq.${username},email.eq.${email}`);
+
+            if (existing && existing.length > 0) {
+                showModal('Account Exists', 'Username or Email is already taken.', 'error');
                 return;
             }
 
-            const existingUsername = users.find(u => u.username === username);
-            if (existingUsername) {
-                showModal('Username Taken', 'This unique username is already taken. Please choose another.', 'error');
-                return;
+            const { data, error } = await supabaseClient
+                .from('users')
+                .insert([{ name, username, email, password }])
+                .select()
+                .single();
+
+            if (error) {
+                showModal('Signup Error', error.message, 'error');
+            } else {
+                currentUser = data;
+                sessionStorage.setItem('chatflow_current_user', JSON.stringify(currentUser));
+                showModal('Success!', 'Account created successfully!', 'success');
+                setTimeout(() => {
+                    closeModal();
+                    showChatView();
+                }, 600);
             }
-
-            const newUser = { id: 'user_' + Date.now(), name, username, email, password };
-            users.push(newUser);
-            localStorage.setItem('chatflow_users', JSON.stringify(users));
-
-            // Log in the user immediately
-            currentUser = newUser;
-            localStorage.setItem('chatflow_current_user', JSON.stringify(currentUser));
-            
-            showModal('Success!', 'Account created successfully. Welcome to ChatFlow!', 'success');
-            setTimeout(() => {
-                closeModal();
-                showChatView();
-            }, 600);
         }
 
-        // Handle Login Submission (supports username or email)
-        function handleLogin(e) {
+        // Handle Login with Supabase
+        async function handleLogin(e) {
             e.preventDefault();
-            let identifier = document.getElementById('login-identifier').value.trim().toLowerCase();
-            identifier = identifier.replace(/^@/, '');
+            if (!supabaseClient) {
+                showModal('Configuration Error', 'Supabase URL and Anon Key are required in code.', 'error');
+                return;
+            }
+
+            let identifier = document.getElementById('login-identifier').value.trim().toLowerCase().replace(/^@/, '');
             const password = document.getElementById('login-password').value;
 
-            const user = users.find(u => (u.username === identifier || u.email === identifier) && u.password === password);
-            if (!user) {
-                showModal('Login Failed', 'Invalid username/email or password. Please try again.', 'error');
+            const { data, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .or(`username.eq.${identifier},email.eq.${identifier}`)
+                .eq('password', password)
+                .single();
+
+            if (error || !data) {
+                showModal('Login Failed', 'Invalid username/email or password.', 'error');
                 return;
             }
 
-            currentUser = user;
-            localStorage.setItem('chatflow_current_user', JSON.stringify(currentUser));
-            showChatView();
+            currentUser = data;
+            sessionStorage.setItem('chatflow_current_user', JSON.stringify(currentUser));
+            await showChatView();
         }
 
-        // Logout User
+        // Logout
         function logout() {
             currentUser = null;
-            localStorage.removeItem('chatflow_current_user');
+            sessionStorage.removeItem('chatflow_current_user');
             document.getElementById('chat-view').classList.add('hidden');
             document.getElementById('auth-view').classList.remove('hidden');
         }
 
-        // Switch to Chat View
-        function showChatView() {
+        // Show Chat View & Fetch Data from Supabase
+        async function showChatView() {
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('chat-view').classList.remove('hidden');
             
-            // Set current user info in sidebar
             document.getElementById('current-user-name').textContent = currentUser.name;
             document.getElementById('current-user-handle').textContent = '@' + currentUser.username;
             document.getElementById('current-user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
-            updateFriendCount();
-            renderContacts();
-            
-            // Default select general chat if none active
+            await fetchAppData();
+            setupRealtimeSubscriptions();
+
             if (!activeChatId && defaultContacts.length > 0) {
                 selectChat(defaultContacts[0].id);
             }
         }
 
-        // Switch Sidebar Tab (Chats vs Friends)
+        async function fetchAppData() {
+            if (!supabaseClient) return;
+
+            // Fetch all users
+            const { data: usersData } = await supabaseClient.from('users').select('*');
+            allUsersCache = usersData || [];
+
+            // Fetch friends
+            const { data: friendsData } = await supabaseClient
+                .from('friends')
+                .select('*')
+                .eq('user_id', currentUser.id);
+            myFriendsCache = friendsData ? friendsData.map(f => f.friend_id) : [];
+
+            // Fetch messages
+            const { data: msgData } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
+            messagesCache = msgData || [];
+
+            updateFriendCount();
+            renderContacts();
+        }
+
+        // Real-time Supabase subscriptions
+        function setupRealtimeSubscriptions() {
+            if (!supabaseClient) return;
+
+            supabaseClient
+                .channel('public:messages')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                    const newMsg = payload.new;
+                    messagesCache.push(newMsg);
+                    if (activeChatId === newMsg.sender_id || activeChatId === newMsg.receiver_id || activeChatId === 'general' || activeChatId === 'tech') {
+                        renderMessages();
+                    }
+                    renderContacts();
+                })
+                .subscribe();
+        }
+
+        // Switch Sidebar Tab
         function switchSidebarTab(tab) {
             currentSidebarTab = tab;
             const chatsBtn = document.getElementById('sidebar-tab-chats');
@@ -505,14 +532,10 @@
             renderContacts();
         }
 
-        // Get list of current active contacts / channels + friend chats
         function getActiveContactsList() {
             let list = [...defaultContacts];
-            
-            // Get current user's friends
-            const myFriends = friendConnections[currentUser.id] || [];
-            myFriends.forEach(friendId => {
-                const friendUser = users.find(u => u.id === friendId);
+            myFriendsCache.forEach(friendId => {
+                const friendUser = allUsersCache.find(u => u.id === friendId);
                 if (friendUser) {
                     list.push({
                         id: friendUser.id,
@@ -528,7 +551,6 @@
             return list;
         }
 
-        // Render Contacts & Channels list
         function renderContacts() {
             const container = document.getElementById('contact-list');
             container.innerHTML = '';
@@ -540,9 +562,7 @@
             if (currentSidebarTab === 'chats') {
                 listToRender = allAvailable;
             } else {
-                // Friends tab: only show added friends
-                const myFriends = friendConnections[currentUser.id] || [];
-                listToRender = allAvailable.filter(c => c.type === 'user' && myFriends.includes(c.id));
+                listToRender = allAvailable.filter(c => c.type === 'user' && myFriendsCache.includes(c.id));
             }
 
             const filtered = listToRender.filter(c => c.name.toLowerCase().includes(filterQuery) || (c.username && c.username.toLowerCase().includes(filterQuery)));
@@ -567,26 +587,21 @@
                 item.className = `p-3.5 flex items-center space-x-3 cursor-pointer transition ${isActive ? 'bg-indigo-50 dark:bg-indigo-950/40 border-l-4 border-indigo-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
                 item.onclick = () => {
                     selectChat(contact.id);
-                    if (window.innerWidth < 768) {
-                        toggleMobileSidebar();
-                    }
+                    if (window.innerWidth < 768) toggleMobileSidebar();
                 };
 
-                let avatarHtml = '';
-                if (contact.type === 'channel') {
-                    avatarHtml = `<div class="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0"><i class="fa-solid ${contact.icon}"></i></div>`;
-                } else if (contact.type === 'bot') {
-                    avatarHtml = `<div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">${contact.avatar}</div>`;
-                } else {
-                    avatarHtml = `<div class="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">${contact.avatar}</div>`;
-                }
+                let avatarHtml = contact.type === 'channel' ? 
+                    `<div class="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0"><i class="fa-solid ${contact.icon}"></i></div>` :
+                    contact.type === 'bot' ?
+                    `<div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">${contact.avatar}</div>` :
+                    `<div class="w-11 h-11 rounded-2xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">${contact.avatar}</div>`;
 
                 item.innerHTML = `
                     ${avatarHtml}
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between mb-0.5">
                             <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">${contact.name}</h4>
-                            <span class="text-[10px] text-slate-400 shrink-0">${lastMsg ? formatTime(lastMsg.timestamp) : ''}</span>
+                            <span class="text-[10px] text-slate-400 shrink-0">${lastMsg ? formatTime(lastMsg.created_at) : ''}</span>
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${lastMsg ? lastMsg.text : contact.status}</p>
                     </div>
@@ -595,13 +610,10 @@
             });
         }
 
-        // Update Friend Count badge
         function updateFriendCount() {
-            const myFriends = friendConnections[currentUser.id] || [];
-            document.getElementById('friend-count').textContent = myFriends.length;
+            document.getElementById('friend-count').textContent = myFriendsCache.length;
         }
 
-        // Open/Close Add Friend Modal
         function openAddFriendModal() {
             document.getElementById('add-friend-modal').classList.remove('hidden');
             document.getElementById('global-user-search').value = '';
@@ -612,27 +624,21 @@
             document.getElementById('add-friend-modal').classList.add('hidden');
         }
 
-        // Search through all registered users in system for adding friends
         function searchGlobalUsers() {
-            let query = document.getElementById('global-user-search').value.toLowerCase().trim();
-            query = query.replace(/^@/, '');
+            let query = document.getElementById('global-user-search').value.toLowerCase().trim().replace(/^@/, '');
             const resultsContainer = document.getElementById('global-user-results');
             resultsContainer.innerHTML = '';
 
-            // Filter out current user
-            const otherUsers = users.filter(u => u.id !== currentUser.id);
+            const otherUsers = allUsersCache.filter(u => u.id !== currentUser.id);
             const filtered = otherUsers.filter(u => u.username.toLowerCase().includes(query) || u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
 
             if (filtered.length === 0) {
-                resultsContainer.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">No registered users found matching "@${query}"</div>`;
+                resultsContainer.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">No registered users found</div>`;
                 return;
             }
 
-            const myFriends = friendConnections[currentUser.id] || [];
-
             filtered.forEach(user => {
-                const isAlreadyFriend = myFriends.includes(user.id);
-
+                const isAlreadyFriend = myFriendsCache.includes(user.id);
                 const row = document.createElement('div');
                 row.className = "p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition";
                 row.innerHTML = `
@@ -656,33 +662,28 @@
             });
         }
 
-        // Add Friend action
-        function addFriend(friendId) {
-            if (!friendConnections[currentUser.id]) {
-                friendConnections[currentUser.id] = [];
-            }
+        async function addFriend(friendId) {
+            if (!supabaseClient) return;
 
-            if (!friendConnections[currentUser.id].includes(friendId)) {
-                friendConnections[currentUser.id].push(friendId);
-                localStorage.setItem('chatflow_friends', JSON.stringify(friendConnections));
-            }
+            const { error } = await supabaseClient
+                .from('friends')
+                .insert([{ user_id: currentUser.id, friend_id: friendId }]);
 
-            updateFriendCount();
-            searchGlobalUsers();
-            renderContacts();
-            showModal('Friend Added!', 'Friend added successfully! You can now start chatting instantly.', 'success');
+            if (!error) {
+                myFriendsCache.push(friendId);
+                updateFriendCount();
+                searchGlobalUsers();
+                renderContacts();
+                showModal('Friend Added!', 'Friend added successfully in cloud database!', 'success');
+            }
         }
 
-        // Select a Chat Channel or Contact
         function selectChat(contactId) {
             activeChatId = contactId;
-            
-            // Find contact from active list
             const allContacts = getActiveContactsList();
             const contact = allContacts.find(c => c.id === contactId);
             if (!contact) return;
 
-            // Update Header info
             document.getElementById('active-chat-name').textContent = contact.name;
             document.getElementById('active-chat-status').textContent = contact.status;
             
@@ -698,25 +699,27 @@
                 avatarEl.className = "w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm";
             }
 
-            // Show input box
             document.getElementById('chat-input-area').classList.remove('hidden');
-
             renderContacts();
             renderMessages();
         }
 
-        // Get Last Message for preview in contact list
         function getLastMessage(contactId) {
-            const chatMessages = messages[contactId] || [];
+            const chatMessages = messagesCache.filter(m => 
+                (m.sender_id === currentUser.id && m.receiver_id === contactId) ||
+                (m.sender_id === contactId && m.receiver_id === currentUser.id)
+            );
             return chatMessages.length > 0 ? chatMessages[chatMessages.length - 1] : null;
         }
 
-        // Render Messages in active chat window
         function renderMessages() {
             const container = document.getElementById('messages-container');
             container.innerHTML = '';
 
-            const chatMessages = messages[activeChatId] || [];
+            const chatMessages = messagesCache.filter(m => 
+                (m.sender_id === currentUser.id && m.receiver_id === activeChatId) ||
+                (m.sender_id === activeChatId && m.receiver_id === currentUser.id)
+            );
 
             if (chatMessages.length === 0) {
                 container.innerHTML = `
@@ -724,27 +727,28 @@
                         <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-900 flex items-center justify-center text-indigo-500 mb-2">
                             <i class="fa-solid fa-comment-dots text-lg"></i>
                         </div>
-                        <p class="text-sm font-medium">No messages yet in this conversation</p>
-                        <p class="text-xs mt-1">Send a greeting to get the conversation started!</p>
+                        <p class="text-sm font-medium">No messages yet</p>
                     </div>
                 `;
                 return;
             }
 
             chatMessages.forEach(msg => {
-                const isMe = msg.senderId === currentUser.id;
+                const isMe = msg.sender_id === currentUser.id;
+                const senderObj = allUsersCache.find(u => u.id === msg.sender_id);
+                const senderName = isMe ? currentUser.name : (senderObj ? senderObj.name : 'User');
+
                 const bubble = document.createElement('div');
                 bubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
-
                 bubble.innerHTML = `
                     <div class="flex items-end space-x-2 max-w-[80%] md:max-w-[70%]">
-                        ${!isMe ? `<div class="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-200 shrink-0">${msg.senderName.charAt(0)}</div>` : ''}
+                        ${!isMe ? `<div class="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-200 shrink-0">${senderName.charAt(0)}</div>` : ''}
                         <div class="px-4 py-3 rounded-2xl text-sm shadow-sm ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-800 rounded-bl-none'}">
-                            ${!isMe ? `<p class="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mb-1">${msg.senderName}</p>` : ''}
+                            ${!isMe ? `<p class="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mb-1">${senderName}</p>` : ''}
                             <p class="leading-relaxed break-words">${escapeHtml(msg.text)}</p>
                         </div>
                     </div>
-                    <span class="text-[10px] text-slate-400 mt-1 px-1">${formatTime(msg.timestamp)}</span>
+                    <span class="text-[10px] text-slate-400 mt-1 px-1">${formatTime(msg.created_at)}</span>
                 `;
                 container.appendChild(bubble);
             });
@@ -752,97 +756,59 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Handle Sending Message
-        function handleSendMessage(e) {
+        async function handleSendMessage(e) {
             e.preventDefault();
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text || !activeChatId) return;
-
-            if (!messages[activeChatId]) {
-                messages[activeChatId] = [];
-            }
+            if (!text || !activeChatId || !supabaseClient) return;
 
             const newMsg = {
-                id: 'msg_' + Date.now(),
-                senderId: currentUser.id,
-                senderName: currentUser.name,
-                text: text,
-                timestamp: Date.now()
+                sender_id: currentUser.id,
+                receiver_id: activeChatId,
+                text: text
             };
 
-            messages[activeChatId].push(newMsg);
-            localStorage.setItem('chatflow_messages', JSON.stringify(messages));
+            const { data, error } = await supabaseClient
+                .from('messages')
+                .insert([newMsg])
+                .select()
+                .single();
 
-            input.value = '';
-            renderMessages();
-            renderContacts();
-
-            // Simulate Bot or Contact Auto-Reply for engaging experience
-            const allContacts = getActiveContactsList();
-            const activeContact = allContacts.find(c => c.id === activeChatId);
-            if (activeContact && (activeContact.type === 'bot' || activeContact.type === 'user')) {
-                setTimeout(() => simulateReply(activeContact), 1200);
-            }
-        }
-
-        // Simulate AI or Contact reply
-        function simulateReply(contact) {
-            if (!messages[activeChatId]) messages[activeChatId] = [];
-
-            let replyText = "Thanks for your message! I've received it loud and clear.";
-            if (contact.type === 'bot') {
-                const botResponses = [
-                    "That's super interesting! Tell me more.",
-                    "I'm ChatFlow AI, ready to assist you with any questions.",
-                    "Got it! Is there anything else you'd like to discuss?",
-                    "Fascinating perspective! How can I help further?"
-                ];
-                replyText = botResponses[Math.floor(Math.random() * botResponses.length)];
-            } else {
-                replyText = `Hey ${currentUser.name}! Thanks for connecting and messaging me!`;
-            }
-
-            const replyMsg = {
-                id: 'msg_' + Date.now(),
-                senderId: contact.id,
-                senderName: contact.name,
-                text: replyText,
-                timestamp: Date.now()
-            };
-
-            messages[activeChatId].push(replyMsg);
-            localStorage.setItem('chatflow_messages', JSON.stringify(messages));
-            
-            if (activeChatId === contact.id) {
+            if (!error && data) {
+                messagesCache.push(data);
+                input.value = '';
                 renderMessages();
+                renderContacts();
+
+                // If chat with bot
+                if (activeChatId === 'bot_ai') {
+                    setTimeout(async () => {
+                        const botMsg = {
+                            sender_id: 'bot_ai',
+                            receiver_id: currentUser.id,
+                            text: "Thanks for messaging ChatFlow AI! I'm live on Supabase."
+                        };
+                        const { data: bData } = await supabaseClient.from('messages').insert([botMsg]).select().single();
+                        if (bData) {
+                            messagesCache.push(bData);
+                            renderMessages();
+                            renderContacts();
+                        }
+                    }, 1000);
+                }
             }
-            renderContacts();
         }
 
-        // Clear Current Chat history
-        function clearCurrentChat() {
-            if (!activeChatId) return;
-            messages[activeChatId] = [];
-            localStorage.setItem('chatflow_messages', JSON.stringify(messages));
-            renderMessages();
-            renderContacts();
-        }
-
-        // Toggle Dark/Light Mode
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('chatflow_dark', isDark);
             document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
 
-        // Toggle Mobile Sidebar Drawer
         function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
         }
 
-        // Custom Modal helper
         function showModal(title, message, type = 'info') {
             const modal = document.getElementById('notification-modal');
             const content = document.getElementById('modal-content');
@@ -872,13 +838,11 @@
             const content = document.getElementById('modal-content');
             content.classList.remove('scale-100', 'opacity-100');
             content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 200);
+            setTimeout(() => modal.classList.add('hidden'), 200);
         }
 
-        // Utility formatting
         function formatTime(timestamp) {
+            if (!timestamp) return '';
             const date = new Date(timestamp);
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
