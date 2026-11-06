@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineTogether - Watch Party & Screen Share</title>
+    <title>CineTogether - Watch Party & Live Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -13,16 +13,19 @@
         .glass-input:focus { border-color: #397cb8; outline: none; box-shadow: 0 0 0 2px rgba(57, 124, 184, 0.25); }
         .btn-primary { background: linear-gradient(135deg, #102d55 0%, #397cb8 100%); border: 1px solid rgba(181, 213, 237, 0.3); box-shadow: 0 4px 14px rgba(57, 124, 184, 0.3); }
         .btn-primary:hover { background: linear-gradient(135deg, #163a6d 0%, #468ecf 100%); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #07090e; }
+        ::-webkit-scrollbar-thumb { background: #102d55; border-radius: 9999px; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- AUTH SCREEN (Sign In / Sign Up Tabs with Password Viewer) -->
+    <!-- 1. AUTH SCREEN (Sign In / Sign Up) -->
     <div id="auth-screen" class="flex-1 flex items-center justify-center p-4 relative overflow-y-auto">
         <div class="glass-panel p-8 rounded-2xl w-full max-w-md space-y-5 my-auto">
             <div class="text-center space-y-2">
                 <h2 class="text-2xl font-extrabold text-white">CineTogether</h2>
-                <p class="text-xs text-slate-400">Watch parties aur screen share ke liye sign in karein.</p>
+                <p class="text-xs text-slate-400">Watch party, screen share aur live chat ke liye sign in karein.</p>
             </div>
 
             <div class="flex bg-black/40 p-1 rounded-xl border border-white/10">
@@ -71,7 +74,7 @@
         </div>
     </div>
 
-    <!-- LOBBY SCREEN (Create or Join Room) -->
+    <!-- 2. LOBBY SCREEN -->
     <div id="lobby-screen" class="flex-1 hidden flex-col items-center justify-center p-4">
         <div class="glass-panel p-8 rounded-2xl w-full max-w-lg space-y-6">
             <div class="flex items-center justify-between border-b border-white/10 pb-4">
@@ -96,8 +99,10 @@
         </div>
     </div>
 
-    <!-- ROOM SCREEN (Synchronized Movie Player + Screen Share with Audio) -->
+    <!-- 3. ROOM SCREEN (Movie Player + Screen Share + Live Chat) -->
     <div id="room-screen" class="flex-1 hidden flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left: Movie Theater & Screen Share -->
         <div class="flex-1 flex flex-col p-4 space-y-3 overflow-y-auto">
             <div class="flex items-center justify-between glass-panel px-4 py-3 rounded-xl">
                 <div class="flex items-center gap-3">
@@ -110,22 +115,45 @@
                     <button onclick="leaveRoom()" class="bg-red-500/20 text-red-300 text-xs px-3 py-2 rounded-lg font-semibold border border-red-500/30">Leave Room</button>
                 </div>
             </div>
+
+            <!-- Screen Share Preview -->
             <div id="screenshare-box" class="hidden bg-black rounded-xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center relative">
                 <video id="screenshare-video" autoplay playsinline class="w-full h-full object-contain"></video>
             </div>
+
+            <!-- Main Movie Player -->
             <div class="bg-black rounded-xl overflow-hidden border border-white/10 aspect-video relative flex items-center justify-center shadow-2xl">
                 <video id="movie-player" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" controls class="w-full h-full object-contain"></video>
             </div>
         </div>
+
+        <!-- Right: Real-Time Live Chat Sidebar -->
+        <div class="w-full lg:w-80 glass-panel border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col h-72 lg:h-auto">
+            <div class="p-3.5 border-b border-white/10 flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Room Live Chat</span>
+                <span class="text-[11px] text-cyan-300 font-mono">Supabase Realtime</span>
+            </div>
+
+            <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
+                <!-- Chat messages will load here -->
+            </div>
+
+            <div class="p-3 border-t border-white/10 bg-black/40 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Kuch likhein..." class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold">Bhejein</button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- MAIN SCRIPT (Supabase Integration) -->
+    <!-- MAIN SCRIPT -->
     <script type="module">
         import { supabase } from './supabase.js';
 
         let currentUser = null;
         let currentRoom = null;
         let localScreenStream = null;
+        let chatSubscription = null;
 
         window.switchTab = function(tab) {
             const signinForm = document.getElementById('signin-form');
@@ -234,13 +262,82 @@
             document.getElementById('room-screen').style.display = 'flex';
             document.getElementById('room-name-display').innerText = currentRoom.name;
             document.getElementById('room-code-display').innerText = currentRoom.room_code;
+            loadMessages();
+            subscribeToChat();
         }
 
         window.leaveRoom = function() {
+            if (chatSubscription) { supabase.removeChannel(chatSubscription); }
             currentRoom = null;
             showLobby();
         };
 
+        // --- REAL-TIME CHAT FUNCTIONS ---
+        window.sendChatMessage = async function() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !currentRoom || !currentUser) return;
+
+            let { error } = await supabase.from('messages').insert([
+                {
+                    room_code: currentRoom.room_code,
+                    user_name: currentUser.email.split('@')[0],
+                    message: text
+                }
+            ]);
+
+            if (error) {
+                alert('Message send error: ' + error.message);
+                return;
+            }
+            input.value = '';
+        };
+
+        async function loadMessages() {
+            const container = document.getElementById('chat-messages-container');
+            let { data, error } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('room_code', currentRoom.room_code)
+                .order('created_at', { ascending: true });
+
+            if (error) { return; }
+
+            container.innerHTML = '';
+            data.forEach(m => {
+                appendMessageToUI(m);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function subscribeToChat() {
+            chatSubscription = supabase
+                .channel('room-chat-' + currentRoom.room_code)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `room_code=eq.${currentRoom.room_code}`
+                }, payload => {
+                    appendMessageToUI(payload.new);
+                })
+                .subscribe();
+        }
+
+        function appendMessageToUI(m) {
+            const container = document.getElementById('chat-messages-container');
+            const isMe = m.user_name === currentUser.email.split('@')[0];
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+            div.innerHTML = `
+                <span class="text-[9px] text-slate-400 mb-0.5">${m.user_name}</span>
+                <div class="px-3 py-1.5 rounded-xl text-xs max-w-[85%] ${isMe ? 'bg-[#397cb8] text-white' : 'bg-slate-800 text-slate-200 border border-white/5'}">${m.message}</div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // --- SCREEN SHARE WITH AUDIO ---
         window.toggleScreenShare = async function() {
             const videoEl = document.getElementById('screenshare-video');
             const boxEl = document.getElementById('screenshare-box');
