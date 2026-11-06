@@ -3,148 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SimpleChat & ScreenShare</title>
+    <title>CineTogether - Global Watch Party & Screen Share</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #07090e;
+            color: #f8fafc;
+            overflow: hidden;
+        }
+        .glass-panel {
+            background: rgba(19, 27, 46, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(181, 213, 237, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .glass-input {
+            background: rgba(7, 15, 30, 0.85);
+            border: 1px solid rgba(57, 124, 184, 0.3);
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .glass-input:focus {
+            border-color: #397cb8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(57, 124, 184, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #102d55 0%, #397cb8 100%);
+            border: 1px solid rgba(181, 213, 237, 0.3);
+            box-shadow: 0 4px 14px rgba(57, 124, 184, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #163a6d 0%, #468ecf 100%);
+            box-shadow: 0 6px 20px rgba(57, 124, 184, 0.5);
+            transform: translateY(-1px);
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #07090e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #102d55;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #397cb8;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-white h-screen flex flex-col">
+<body class="h-screen flex flex-col">
 
-    <!-- AUTH SECTION (WhatsApp Style Account Creation) -->
-    <div id="auth-screen" class="flex-1 flex items-center justify-center p-4">
-        <div class="bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md space-y-4 border border-slate-700">
-            <h2 class="text-2xl font-bold text-center text-emerald-400">WhatsApp Style App</h2>
-            <p class="text-xs text-slate-400 text-center">Pehle apna account banayein ya sign in karein.</p>
-            <input type="text" id="username-input" placeholder="Apna Naam Likhein (e.g. Ali)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-emerald-500">
-            <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg transition">Account Banayein & Shuru Karein</button>
+    <!-- 1. AUTH SCREEN (User Accounts) -->
+    <div id="auth-screen" class="flex-1 flex items-center justify-center p-4 relative">
+        <div class="absolute w-[500px] h-[500px] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+        <div class="relative glass-panel p-8 rounded-2xl w-full max-w-md space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#102D55] to-[#397CB8] mx-auto flex items-center justify-center shadow-lg">
+                    <span class="text-xl font-extrabold text-white">CT</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-white">CineTogether</h2>
+                <p id="auth-subtitle" class="text-xs text-slate-400">Apna account banayein aur dosto ke sath movie enjoy karein.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div id="name-field-container">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Aapka Naam</label>
+                    <input type="text" id="auth-name" placeholder="e.g. Muhammad Talha" class="w-full glass-input rounded-xl px-4 py-3 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+                    <input type="email" id="auth-email" placeholder="name@domain.com" class="w-full glass-input rounded-xl px-4 py-3 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full glass-input rounded-xl px-4 py-3 text-xs">
+                </div>
+
+                <button id="auth-submit-btn" onclick="handleAuthSubmit()" class="w-full btn-primary text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider">
+                    Account Banayein (Sign Up)
+                </button>
+            </div>
+
+            <div class="text-center pt-2">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-[#b5d5ed] hover:underline font-medium">
+                    Pehle se account hai? Sign In karein
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN CHAT & SCREEN SHARE DASHBOARD -->
-    <div id="app-screen" class="flex-1 flex hidden overflow-hidden">
-        <!-- Sidebar / Chat List -->
-        <div class="w-1/3 bg-slate-800 border-r border-slate-700 flex flex-col">
-            <div class="p-4 border-b border-slate-700 flex items-center justify-between">
-                <span id="current-user-display" class="font-bold text-emerald-400 text-sm"></span>
-                <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline">Logout</button>
+    <!-- 2. LOBBY SCREEN (Create / Join Room) -->
+    <div id="lobby-screen" class="flex-1 hidden flex-col items-center justify-center p-4">
+        <div class="relative glass-panel p-8 rounded-2xl w-full max-w-lg space-y-6">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-white" id="welcome-user">Welcome</h3>
+                    <p class="text-xs text-slate-400">Watch Party Room Lobby</p>
+                </div>
+                <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline font-semibold">Logout</button>
             </div>
-            <div class="p-3 bg-slate-850 text-xs text-slate-400 font-semibold uppercase">Global Chat Room</div>
-            <div class="flex-1 p-3 overflow-y-auto space-y-2">
-                <div class="p-2.5 rounded-lg bg-slate-700/50 text-sm cursor-pointer flex items-center justify-between">
-                    <span>General Community Room</span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+
+            <div class="space-y-4">
+                <div class="bg-black/40 p-5 rounded-xl border border-white/5 space-y-3">
+                    <h4 class="text-xs font-bold text-[#b5d5ed] uppercase tracking-wider">Naya Watch Party Room Banayein</h4>
+                    <input type="text" id="room-title-input" placeholder="Room ka Naam (e.g. Action Night)" class="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs">
+                    <button onclick="createRoom()" class="w-full btn-primary text-white font-bold py-2.5 rounded-lg text-xs">
+                        Room Create Karein & Movie Chlayein
+                    </button>
+                </div>
+
+                <div class="flex items-center my-1">
+                    <div class="flex-1 border-t border-white/10"></div>
+                    <span class="px-3 text-[11px] text-slate-500 uppercase font-mono">Ya Room Code Se Join Karein</span>
+                    <div class="flex-1 border-t border-white/10"></div>
+                </div>
+
+                <div class="bg-black/40 p-5 rounded-xl border border-white/5 space-y-3">
+                    <h4 class="text-xs font-bold text-[#b5d5ed] uppercase tracking-wider">Room Code Enter Karein</h4>
+                    <input type="text" id="join-code-input" placeholder="e.g. CINE-4029" class="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs font-mono uppercase">
+                    <button onclick="joinRoomByCode()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-xs transition">
+                        Room Mein Enter Ho Jayein
+                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- Chat & Screen Share Stage -->
-        <div class="flex-1 flex flex-col bg-slate-900">
-            <!-- Top Bar -->
-            <div class="p-4 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
-                <h3 class="font-bold text-sm">General Room & Screen Share</h3>
-                <button onclick="toggleScreenShare()" id="share-btn" class="bg-indigo-600 hover:bg-indigo-500 text-xs px-4 py-2 rounded-lg font-semibold transition">Screen Share Shuru Karein</button>
-            </div>
-
-            <!-- Screen Share Viewport -->
-            <div id="screen-container" class="hidden bg-black p-2 border-b border-slate-700 flex justify-center items-center h-48 relative">
-                <video id="screen-video" autoplay playsinline class="max-h-full rounded"></video>
-            </div>
-
-            <!-- Messages Box -->
-            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
-                <!-- Messages will appear here -->
-            </div>
-
-            <!-- Message Input Box -->
-            <div class="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
-                <input type="text" id="message-input" placeholder="Message likhein..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500" onkeypress="if(event.key === 'Enter') sendMessage()">
-                <button onclick="sendMessage()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 rounded-lg text-sm font-semibold transition">Bhejein</button>
-            </div>
-        </div>
     </div>
 
+    <!-- 3. WATCH PARTY ROOM SCREEN -->
+    <div id="room-screen" class="flex-1 hidden flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left: Movie Theater & Screen Share -->
+        <div class="flex-1 flex flex-col p-4 space-y-3 overflow-y-auto">
+            <div class="flex items-center justify-between glass-panel px-4 py-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <h3 id="room-name-display" class="font-bold text-sm text-white">Room Title</h3>
+                    <span class="bg-black/60 px-2.5 py-0.5 rounded text-xs font-mono text-[#b5d5ed] border border-white/10" id="room-code-display">CINE-0000</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleScreenShare()" id="screen-share-btn" class="btn-primary text-xs px-3.5 py-2 rounded-lg font-semibold">
+                        Screen Share Karein
+                    </button>
+                    <button onclick="leaveRoom()" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-xs px-3 py-2 rounded-lg font-semibold border border-red-500/30 transition">
+                        Room Chhorein
+                    </button>
+                </div>
+            </div>
+
+            <!-- Screen Share Preview -->
+            <div id="screenshare-box" class="hidden bg-black rounded-xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center relative">
+                <video id="screenshare-video" autoplay playsinline class="w-full h-full object-contain"></video>
+                <span class="absolute top-3 left-3 bg-black/80 px-2.5 py-1 rounded text-[10px] text-cyan-300 font-mono border border-white/10">Live Screen Cast</span>
+            </div>
+
+            <!-- Main Synchronized Movie Player -->
+            <div class="bg-black rounded-xl overflow-hidden border border-white/10 aspect-video relative flex items-center justify-center shadow-2xl">
+                <video 
+                    id="movie-player" 
+                    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" 
+                    controls 
+                    class="w-full h-full object-contain"
+                    onplay="onVideoPlay()"
+                    onpause="onVideoPause()"
+                    onseeked="onVideoSeek()"
+                ></video>
+            </div>
+            
+            <p class="text-[11px] text-slate-400 text-center font-medium">
+                Movie Synchronized: Play, pause ya seek karne par sabhi participants ke paas real-time mein sync hoga!
+            </p>
+        </div>
+
+        <!-- Right: Real-Time Chat -->
+        <div class="w-full lg:w-80 glass-panel border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col h-72 lg:h-auto">
+            <div class="p-3.5 border-b border-white/10 flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Room Live Chat</span>
+                <span id="online-users-count" class="text-[11px] text-cyan-300 font-mono">Active</span>
+            </div>
+
+            <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs"></div>
+
+            <div class="p-3 border-t border-white/10 bg-black/40 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Kuch likhein..." class="flex-1 glass-input rounded-lg px-3 py-2 text-xs" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold">Bhejein</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT LOGIC -->
     <script>
-        let currentUser = localStorage.getItem('chat_username') || '';
-        let localStream = null;
+        let isRegisterMode = true;
+        let currentUser = JSON.parse(localStorage.getItem('ct_logged_user') || 'null');
+        let currentRoom = JSON.parse(localStorage.getItem('ct_current_room') || 'null');
+        let localScreenStream = null;
+        let isSyncing = false;
 
         window.onload = function() {
             if (currentUser) {
-                showAppScreen();
+                if (currentRoom) { showRoomScreen(); } else { showLobbyScreen(); }
+            } else {
+                showAuthScreen();
             }
+            setInterval(() => { if (currentRoom) { syncRoomStateFromServer(); } }, 1000);
         };
 
-        function handleLogin() {
-            const name = document.getElementById('username-input').value.trim();
-            if (!name) {
-                alert('Kripya apna naam darj karein!');
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('name-field-container').style.display = isRegisterMode ? 'block' : 'none';
+            document.getElementById('auth-subtitle').innerText = isRegisterMode ? 'Apna account banayein aur dosto ke sath movie enjoy karein.' : 'Apne account mein login karein.';
+            document.getElementById('auth-submit-btn').innerText = isRegisterMode ? 'Account Banayein (Sign Up)' : 'Sign In';
+            document.getElementById('auth-toggle-btn').innerText = isRegisterMode ? 'Pehle se account hai? Sign In karein' : 'Account nahi hai? Sign Up karein';
+        }
+
+        function handleAuthSubmit() {
+            const name = document.getElementById('auth-name').value.trim();
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            const password = document.getElementById('auth-password').value.trim();
+
+            if (!email || !password || (isRegisterMode && !name)) {
+                alert('Kripya sabhi fields zaroor bharein!');
                 return;
             }
-            currentUser = name;
-            localStorage.setItem('chat_username', currentUser);
-            showAppScreen();
+
+            let users = JSON.parse(localStorage.getItem('ct_users_db') || '{}');
+            if (isRegisterMode) {
+                if (users[email]) { alert('Is email se account pehle hi bana hua hai!'); return; }
+                const newUser = { name, email, password };
+                users[email] = newUser;
+                localStorage.setItem('ct_users_db', JSON.stringify(users));
+                currentUser = newUser;
+                alert('Account successfully ban gaya!');
+            } else {
+                const user = users[email];
+                if (!user || user.password !== password) { alert('Galat email ya password!'); return; }
+                currentUser = user;
+            }
+
+            localStorage.setItem('ct_logged_user', JSON.stringify(currentUser));
+            showLobbyScreen();
         }
 
         function handleLogout() {
-            localStorage.removeItem('chat_username');
-            currentUser = '';
-            location.reload();
+            localStorage.removeItem('ct_logged_user');
+            localStorage.removeItem('ct_current_room');
+            currentUser = null; currentRoom = null;
+            showAuthScreen();
         }
 
-        function showAppScreen() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('hidden');
-            document.getElementById('current-user-display').innerText = `User: ${currentUser}`;
-            loadMessages();
+        function showAuthScreen() {
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('room-screen').style.display = 'none';
         }
 
-        function sendMessage() {
-            const input = document.getElementById('message-input');
+        function showLobbyScreen() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'flex';
+            document.getElementById('room-screen').style.display = 'none';
+            document.getElementById('welcome-user').innerText = `Welcome, ${currentUser.name}!`;
+        }
+
+        function showRoomScreen() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('room-screen').style.display = 'flex';
+            document.getElementById('room-name-display').innerText = currentRoom.title;
+            document.getElementById('room-code-display').innerText = currentRoom.code;
+            loadChatMessages();
+        }
+
+        function createRoom() {
+            const title = document.getElementById('room-title-input').value.trim() || `${currentUser.name} ka Room`;
+            const code = 'CINE-' + Math.floor(1000 + Math.random() * 9000);
+            const room = { code, title, isPlaying: false, currentTime: 0, lastUpdated: Date.now() };
+
+            let rooms = JSON.parse(localStorage.getItem('ct_rooms_db') || '{}');
+            rooms[code] = room;
+            localStorage.setItem('ct_rooms_db', JSON.stringify(rooms));
+
+            currentRoom = room;
+            localStorage.setItem('ct_current_room', JSON.stringify(currentRoom));
+            showRoomScreen();
+        }
+
+        function joinRoomByCode() {
+            const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+            if (!code) { alert('Room code likhein!'); return; }
+
+            let rooms = JSON.parse(localStorage.getItem('ct_rooms_db') || '{}');
+            const room = rooms[code];
+            if (!room) { alert('Room mojood nahi hai!'); return; }
+
+            currentRoom = room;
+            localStorage.setItem('ct_current_room', JSON.stringify(currentRoom));
+            showRoomScreen();
+        }
+
+        function leaveRoom() {
+            currentRoom = null;
+            localStorage.removeItem('ct_current_room');
+            showLobbyScreen();
+        }
+
+        function onVideoPlay() {
+            if (isSyncing || !currentRoom) return;
+            const video = document.getElementById('movie-player');
+            updateRoomServerState({ isPlaying: true, currentTime: video.currentTime });
+        }
+
+        function onVideoPause() {
+            if (isSyncing || !currentRoom) return;
+            const video = document.getElementById('movie-player');
+            updateRoomServerState({ isPlaying: false, currentTime: video.currentTime });
+        }
+
+        function onVideoSeek() {
+            if (isSyncing || !currentRoom) return;
+            const video = document.getElementById('movie-player');
+            updateRoomServerState({ isPlaying: !video.paused, currentTime: video.currentTime });
+        }
+
+        function updateRoomServerState(state) {
+            let rooms = JSON.parse(localStorage.getItem('ct_rooms_db') || '{}');
+            if (rooms[currentRoom.code]) {
+                rooms[currentRoom.code].isPlaying = state.isPlaying;
+                rooms[currentRoom.code].currentTime = state.currentTime;
+                rooms[currentRoom.code].lastUpdated = Date.now();
+                localStorage.setItem('ct_rooms_db', JSON.stringify(rooms));
+            }
+        }
+
+        function syncRoomStateFromServer() {
+            let rooms = JSON.parse(localStorage.getItem('ct_rooms_db') || '{}');
+            const room = rooms[currentRoom.code];
+            if (!room) return;
+
+            const video = document.getElementById('movie-player');
+            if (!video) return;
+
+            isSyncing = true;
+            if (Math.abs(video.currentTime - room.currentTime) > 1.5) {
+                video.currentTime = room.currentTime;
+            }
+            if (room.isPlaying && video.paused) {
+                video.play().catch(() => {});
+            } else if (!room.isPlaying && !video.paused) {
+                video.pause();
+            }
+            isSyncing = false;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
             const text = input.value.trim();
-            if (!text) return;
+            if (!text || !currentRoom) return;
 
-            const messages = JSON.parse(localStorage.getItem('chat_msgs') || '[]');
-            const newMsg = { user: currentUser, text: text, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
-            messages.push(newMsg);
-            localStorage.setItem('chat_msgs', JSON.stringify(messages));
+            const msg = {
+                roomCode: currentRoom.code,
+                user: currentUser.name,
+                text: text,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+
+            let allMsgs = JSON.parse(localStorage.getItem('ct_chat_db') || '[]');
+            allMsgs.push(msg);
+            localStorage.setItem('ct_chat_db', JSON.stringify(allMsgs));
+
             input.value = '';
-            loadMessages();
+            loadChatMessages();
         }
 
-        function loadMessages() {
-            const container = document.getElementById('chat-messages');
-            const messages = JSON.parse(localStorage.getItem('chat_msgs') || '[]');
+        function loadChatMessages() {
+            if (!currentRoom) return;
+            const container = document.getElementById('chat-messages-container');
+            let allMsgs = JSON.parse(localStorage.getItem('ct_chat_db') || '[]');
+            const roomMsgs = allMsgs.filter(m => m.roomCode === currentRoom.code);
+
             container.innerHTML = '';
-            
-            messages.forEach(msg => {
+            roomMsgs.forEach(m => {
+                const isMe = m.user === currentUser.name;
                 const div = document.createElement('div');
-                const isMe = msg.user === currentUser;
-                div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1`;
+                div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
                 div.innerHTML = `
-                    <span class="text-[10px] text-slate-400">${msg.user} • ${msg.time}</span>
-                    <div class="px-4 py-2 rounded-xl text-xs max-w-xs ${isMe ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}">${msg.text}</div>
+                    <span class="text-[9px] text-slate-400 mb-0.5">${m.user} • ${m.time}</span>
+                    <div class="px-3 py-1.5 rounded-xl text-xs max-w-[85%] ${isMe ? 'bg-[#397cb8] text-white' : 'bg-slate-800 text-slate-200 border border-white/5'}">${m.text}</div>
                 `;
                 container.appendChild(div);
             });
             container.scrollTop = container.scrollHeight;
         }
 
-        // Native WebRTC Screen Share Functionality
         async function toggleScreenShare() {
-            const videoEl = document.getElementById('screen-video');
-            const containerEl = document.getElementById('screen-container');
-            const btn = document.getElementById('share-btn');
+            const videoEl = document.getElementById('screenshare-video');
+            const boxEl = document.getElementById('screenshare-box');
+            const btn = document.getElementById('screen-share-btn');
 
-            if (!localStream) {
+            if (!localScreenStream) {
                 try {
-                    localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                    videoEl.srcObject = localStream;
-                    containerEl.classList.remove('hidden');
-                    btn.innerText = 'Screen Share Band Karein';
-                    btn.className = 'bg-red-600 hover:bg-red-500 text-xs px-4 py-2 rounded-lg font-semibold transition';
+                    localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                    videoEl.srcObject = localScreenStream;
+                    boxEl.classList.remove('hidden');
+                    btn.innerText = 'Stop Sharing';
+                    btn.className = 'bg-red-600 hover:bg-red-500 text-xs px-3.5 py-2 rounded-lg font-semibold transition';
 
-                    localStream.getVideoTracks()[0].onended = function() {
-                        stopScreenShare();
-                    };
+                    localScreenStream.getVideoTracks()[0].onended = () => { stopScreenShare(); };
                 } catch (err) {
-                    alert('Screen share cancel kar diya gaya ya support nahi mila.');
+                    alert('Screen share cancel kar diya gaya.');
                 }
             } else {
                 stopScreenShare();
@@ -152,20 +424,15 @@
         }
 
         function stopScreenShare() {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
+            if (localScreenStream) {
+                localScreenStream.getTracks().forEach(t => t.stop());
+                localScreenStream = null;
             }
-            document.getElementById('screen-container').classList.add('hidden');
-            const btn = document.getElementById('share-btn');
-            btn.innerText = 'Screen Share Shuru Karein';
-            btn.className = 'bg-indigo-600 hover:bg-indigo-500 text-xs px-4 py-2 rounded-lg font-semibold transition';
+            document.getElementById('screenshare-box').classList.add('hidden');
+            const btn = document.getElementById('screen-share-btn');
+            btn.innerText = 'Screen Share Karein';
+            btn.className = 'btn-primary text-xs px-3.5 py-2 rounded-lg font-semibold';
         }
-
-        // Auto refresh messages every 1 second for simulation
-        setInterval(() => {
-            if (currentUser) loadMessages();
-        }, 1000);
     </script>
 </body>
 </html>
